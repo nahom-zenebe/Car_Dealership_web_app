@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚗 Car Dealership Web App
 
-## Getting Started
+A full-stack **car dealership** web application built with **Next.js**, **Prisma ORM**, and **MongoDB**.  
+It features a sleek API-driven backend with CRUD operations for cars, customers, and sales, a shopping cart, user authentication, and Stripe payment integration.
 
-First, run the development server:
+---
+
+## 🛠️ Tech Stack
+
+- **Next.js** — React framework for server-rendered apps & API routes  
+- **Prisma** — Next-gen ORM to interact with MongoDB  
+- **MongoDB** — NoSQL database for flexible, scalable data storage  
+- **Stripe** — Payment gateway to process car purchases  
+- **React Context / Zustand** — For managing global app state (e.g., cart)  
+- **TypeScript** — Strong typing for safer code
+
+---
+
+## 🚀 Features
+
+### Core
+
+- 🔍 Browse car listings with filters (make, model, year, price)  
+- 📦 Add cars to a shopping cart  
+- 🛒 View, update, or remove items from cart  
+- 👤 Customer registration & login (JWT-based authentication)  
+- 💳 Stripe integration for secure payment checkout  
+- 🗃️ Backend CRUD APIs for cars, customers, sales  
+- 🛠️ Admin dashboard (optional) to manage inventory & orders
+
+### Advanced
+
+- 📝 User reviews & ratings for cars  
+- 📞 Contact form for inquiries  
+- 🔔 Email notifications for order confirmation  
+- 📱 Responsive UI for mobile & desktop
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone the repo
 
 ```bash
+git clone https://github.com/yourusername/car-dealership.git
+cd car-dealership
+
+2. Install dependencies
+
+npm install
+
+3. Setup environment variables
+
+Create a .env file in the root:
+
+DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/car_dealership?retryWrites=true&w=majority"
+STRIPE_SECRET_KEY=sk_test_***************
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_**************
+
+Replace placeholders with your actual credentials.
+4. Generate Prisma Client
+
+npx prisma generate
+
+5. Run the development server
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000 to see the app.
+📦 API Endpoints (Examples)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    GET /api/cars — List all cars
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    POST /api/cars — Add a new car (admin)
 
-## Learn More
+    GET /api/cars/[id] — Get car details
 
-To learn more about Next.js, take a look at the following resources:
+    PUT /api/cars/[id] — Update car info
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    DELETE /api/cars/[id] — Remove car
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    POST /api/cart — Add item to cart
 
-## Deploy on Vercel
+    GET /api/cart — Get current cart
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    POST /api/checkout — Create Stripe payment session
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    POST /api/auth/login — User login
+
+    POST /api/auth/register — User registration
+
+💳 Stripe Payment Flow
+
+    Users add cars to their cart
+
+    Proceed to checkout page
+
+    Initiate Stripe payment session on backend
+
+    Redirect to Stripe-hosted payment page
+
+    After payment, webhook updates sale records in database
+
+    Send order confirmation email
+
+🧩 Project Structure
+
+/app
+  /generated/prisma        ← Prisma Client
+/pages
+  /api
+    /cars                 ← Cars CRUD API
+    /customers            ← Customer APIs
+    /sales                ← Sales & payment APIs
+    /auth                 ← Authentication APIs
+/components              ← React UI components
+/context                 ← React Context / Zustand stores
+/prisma
+  schema.prisma           ← Prisma schema file
+/public                  ← Static assets (images, icons)
+/styles                  ← CSS / Tailwind styles
+.env                     ← Environment variables
+
+🤝 Contributing
+
+Contributions welcome! Please open issues or PRs for features, bugs, or improvements.
+📄 License
+
+MIT License © 2025 Nahom Zenebe
