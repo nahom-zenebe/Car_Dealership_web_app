@@ -1,4 +1,3 @@
-// components/LandingLayout.tsx
 "use client";
 
 import React from "react";
@@ -8,14 +7,19 @@ import {
   FaStar,
   FaPhone,
   FaShoppingCart,
-  FaSignInAlt,
 } from "react-icons/fa";
 import Link from "next/link";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export default function LandingLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans">
-
       <header className="bg-white shadow sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
@@ -35,19 +39,33 @@ export default function LandingLayout({ children }) {
             </Link>
           </nav>
 
-          <div className="flex gap-4">
-            <Link href="/cart">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-700 transition-all">
-                <FaShoppingCart className="inline mr-2" />
-                Get Started
-              </button>
-            </Link>
-            <Link href="/login">
-              <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all">
-                <FaSignInAlt className="inline mr-2" />
-                Login
-              </button>
-            </Link>
+          <div className="flex gap-4 items-center">
+            
+
+            {/* Clerk Auth Buttons */}
+            <SignedOut>
+              <SignInButton>
+                <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all">
+                  Login
+                </button>
+              </SignInButton>
+              <SignUpButton>
+                <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all ml-2">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </SignedOut>
+
+            <SignedIn>
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-8 h-8",
+                    userButtonPopoverCard: "p-4",
+                  },
+                }}
+              />
+            </SignedIn>
           </div>
         </div>
       </header>
