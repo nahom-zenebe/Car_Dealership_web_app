@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -15,27 +9,63 @@ datasource db {
 }
 
 model Car {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  make         String
+  model        String
+  year         Int
+  price        Float
+  mileage      Int
+  color        String
+  inStock      Boolean       @default(true)
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sales        Sale[]
+  appointments Appointment[]
+}
+
+
+
+model Sale {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  car         Car      @relation(fields: [carId], references: [id])
+  carId       String   @db.ObjectId
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  String   @db.ObjectId
+  saleDate    DateTime @default(now())
+  price       Float
+  seller      Seller   @relation(fields: [sellerId], references: [id])
+  sellerId    String   @db.ObjectId
+}
+
+model Seller {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  make      String
-  model     String
-  year      Int
-  price     Float
-  inStock   Boolean  @default(true)
+  clerkId   String   @unique
+  name      String
+  email     String   @unique
+  phone     String?
+  sales     Sale[]
   createdAt DateTime @default(now())
 }
 
 model Customer {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String   @unique
-  phone     String
-  createdAt DateTime @default(now())
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId      String        @unique
+  name         String?
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+  sales        Sale[]        // <-- add this line
 }
 
-model Sale {
+
+
+model Appointment {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  carId      String   @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id])
   customerId String   @db.ObjectId
-  saleDate   DateTime @default(now())
-  price      Float
+  car        Car      @relation(fields: [carId], references: [id])
+  carId      String   @db.ObjectId
+  date       DateTime
+  status     String   @default("scheduled")
+  notes      String?
 }
