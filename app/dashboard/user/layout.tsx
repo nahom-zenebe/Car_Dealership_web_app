@@ -19,12 +19,16 @@ export default async function UserDashboardLayout({
      
     </header>
         <div className="relative">
+
+<h1>Welcome to car dealership</h1>
           <button
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 focus:outline-none"
           >
+            user
           
           </button>
+
 
           {/* Dropdown */}
           {open && (
