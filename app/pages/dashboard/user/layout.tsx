@@ -21,11 +21,6 @@ export default function UserDashboardLayout({
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 focus:outline-none"
           >
-            <img
-              src="/user-avatar.jpg"
-              alt="User"
-              className="w-10 h-10 rounded-full border border-gray-300 object-cover"
-            />
           
           </button>
 
