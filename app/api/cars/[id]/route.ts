@@ -70,12 +70,7 @@ export async function PUT(
             );
         }
 
-        if (error.code === 'P2025') {
-            return NextResponse.json(
-                { error: 'Car not found' },
-                { status: 404 }
-            );
-        }
+        
 
         console.error('Error updating car:', error);
         return NextResponse.json({ error: 'Failed to update car' }, { status: 500 });
@@ -92,12 +87,7 @@ export async function DELETE(
         });
         return new NextResponse(null, { status: 204 });
     } catch (error) {
-        if (error.code === 'P2025') {
-            return NextResponse.json(
-                { error: 'Car not found' },
-                { status: 404 }
-            );
-        }
+        
 
         console.error('Error deleting car:', error);
         return NextResponse.json({ error: 'Failed to delete car' }, { status: 500 });

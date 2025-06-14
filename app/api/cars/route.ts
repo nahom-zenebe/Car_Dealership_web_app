@@ -10,7 +10,7 @@ const carSchema = z.object({
   model: z.string().min(1),
   year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
   price: z.number().positive(),
-  mileage: z.number().int().min(0),
+  mileage: z.number().int().min(0).optional(),
   color: z.string().min(1),
   inStock: z.boolean().optional(),
   imageUrl: z.string().url().optional(),
@@ -52,15 +52,36 @@ export async function GET(request: Request) {
 }
 
 // POST /api/cars
+// POST /api/cars
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     // Validate the request body
     const validatedData = carSchema.parse(body);
-    
+
+    const {
+      make,
+      model,
+      year,
+      price,
+      mileage,
+      color,
+      inStock,
+      imageUrl,
+    } = validatedData;
+
     const car = await prisma.car.create({
-      data: validatedData,
+      data: {
+        make,
+        model,
+        year,
+        price,
+        color,
+        ...(mileage !== undefined && { mileage }), // 👈 include only if not undefined
+        ...(inStock !== undefined && { inStock }),
+        ...(imageUrl && { imageUrl }),
+      },
     });
 
     return NextResponse.json(car, { status: 201 });
@@ -71,7 +92,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     console.error('Error creating car:', error);
     return NextResponse.json(
       { error: 'Failed to create car' },
@@ -79,3 +100,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

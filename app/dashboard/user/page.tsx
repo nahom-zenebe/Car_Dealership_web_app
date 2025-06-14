@@ -19,6 +19,8 @@ export default function UserDashboard() {
     const [cars, setCars] = useState<Car[]>([]);
     const [error, setError] = useState<string | null>(null);  // <-- moved here
 
+
+   
     useEffect(() => {
         const fetchCars = async () => {
             try {
@@ -47,16 +49,18 @@ export default function UserDashboard() {
                   </div>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {cars.map((car) => (
-                        <CarRentalCard
-                            key={car.id}
-                            make={car.make}
-                            model={car.model}
-                            year={car.year}
-                            price={car.price}
-                            inStock={car.inStock}
-                        />
-                    ))}
+                {cars.map((car) => (
+  <CarRentalCard
+    key={car.id}
+    id={car.id} 
+    make={car.make}
+    model={car.model}
+    year={car.year}
+    price={car.price}
+    inStock={car.inStock}
+  />
+))}
+
                 </div>
             </div>
         </div>

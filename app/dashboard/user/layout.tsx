@@ -1,7 +1,7 @@
 'use client';
-import { UserButton } from "@clerk/clerk-react";
+
 import React, { useState } from 'react';
-import { currentUser } from '@clerk/nextjs/server'
+
 
 export default async function UserDashboardLayout({
   children,
@@ -9,14 +9,14 @@ export default async function UserDashboardLayout({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const user = await currentUser()
+
   return (
     <div>
       {/* Navbar */}
       <nav className="flex items-center justify-between bg-gray-100 px-6 py-4 shadow-sm">
         <h1 className="text-xl font-bold text-gray-800">🚗 AutoDrive Dealership</h1>
         <header style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem' }}>
-      <UserButton afterSignOutUrl="/" />
+     
     </header>
         <div className="relative">
           <button

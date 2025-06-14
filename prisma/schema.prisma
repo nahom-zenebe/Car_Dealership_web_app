@@ -14,12 +14,12 @@ model Car {
   model        String
   year         Int
   price        Float
-  mileage      Int
-  color        String
+  mileage      Int?
+  color        String?
   inStock      Boolean       @default(true)
   imageUrl     String?
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime?      @updatedAt
   sales        Sale[]
   appointments Appointment[]
 }

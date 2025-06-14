@@ -1,5 +1,14 @@
-export default function CarRentalCard({ make, model, year, price, inStock }:any) {
+
+
+import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
+
+export default function CarRentalCard({id, make, model, year, price, inStock }:any) {
+  
+  
+
   return (
+    <Link href={`/cars/${id}`}>
     <div className="max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-200 p-4">
       {/* Title Section */}
       <div className="mb-2">
@@ -48,6 +57,7 @@ export default function CarRentalCard({ make, model, year, price, inStock }:any)
         {inStock === false ? 'Unavailable' : 'Rent Now'}
       </button>
     </div>
+    </Link>
   )
 }
 
