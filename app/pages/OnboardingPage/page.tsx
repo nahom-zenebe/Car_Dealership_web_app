@@ -59,10 +59,10 @@ export default function OnboardingPage() {
       
      
       if (step === 0) {
-        if (value === 'buyer') {
+        if (value === '/dashboard/admin') {
           
           setStep(1); 
-        } else if (value === 'seller') {
+        } else if (value === '/dashboard/user') {
           
           setStep(1); 
         }
