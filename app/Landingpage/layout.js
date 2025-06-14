@@ -9,15 +9,10 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import Link from "next/link";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { useRouter } from 'next/navigation';
 
 export default function LandingLayout({ children }) {
+  const router=useRouter();
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans">
       <header className="bg-white shadow sticky top-0 z-50">
@@ -43,29 +38,16 @@ export default function LandingLayout({ children }) {
             
 
             {/* Clerk Auth Buttons */}
-            <SignedOut>
-              <SignInButton>
-                <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all">
+         
+                <button  onClick={()=>router.push("/Login")} className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all">
                   Login
                 </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all ml-2">
+        
+          
+                <button onClick={()=>router.push("/Signup")} className="border border-blue-600 text-blue-600 px-4 py-2 rounded-xl text-sm shadow hover:bg-blue-50 transition-all ml-2">
                   Sign Up
                 </button>
-              </SignUpButton>
-            </SignedOut>
-
-            <SignedIn>
-              <UserButton
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-8 h-8",
-                    userButtonPopoverCard: "p-4",
-                  },
-                }}
-              />
-            </SignedIn>
+            
           </div>
         </div>
       </header>
