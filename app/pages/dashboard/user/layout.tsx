@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { currentUser } from '@clerk/nextjs/server'
 
-
-export default function UserDashboardLayout({
+export default async function UserDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-
+  const user = await currentUser()
   return (
     <div>
       {/* Navbar */}
       <nav className="flex items-center justify-between bg-gray-100 px-6 py-4 shadow-sm">
         <h1 className="text-xl font-bold text-gray-800">🚗 AutoDrive Dealership</h1>
-
+        <div>Hello {user?.firstName}?? Guest</div>
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}

@@ -54,7 +54,7 @@ model Customer {
   name         String?
   createdAt    DateTime      @default(now())
   appointments Appointment[]
-  sales        Sale[]        // <-- add this line
+  sales        Sale[]        
 }
 
 
