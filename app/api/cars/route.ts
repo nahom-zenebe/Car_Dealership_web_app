@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server';
 import { FuelType, PrismaClient, Transmission } from '../../generated/prisma';
 import { z } from 'zod';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 const prisma = new PrismaClient();
 
-// Fuel type enum
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
+// Zod schemas
 const fuelTypeEnum = z.nativeEnum(FuelType);
-const transmissionEnum = z.nativeEnum( Transmission);
-// Zod schema
+const transmissionEnum = z.nativeEnum(Transmission);
+
 const carSchema = z.object({
   make: z.string().min(1),
   model: z.string().min(1),
@@ -19,10 +28,88 @@ const carSchema = z.object({
   features: z.array(z.string().min(1)).optional(),
   fuelType: fuelTypeEnum,
   transmission: transmissionEnum,
-  imageUrl: z.string().url().optional(),
+  description: z.string().optional(),
 });
 
-// 🚀 GET /api/cars
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export async function POST(request: Request) {
+  try {
+    const formData = await request.formData();
+    
+    // Get JSON data from formData
+    const carData = formData.get('carData');
+    if (!carData || typeof carData !== 'string') {
+      return NextResponse.json(
+        { error: 'Missing car data' },
+        { status: 400 }
+      );
+    }
+
+    // Parse and validate car data
+    const parsedData = JSON.parse(carData);
+    const validatedData = carSchema.parse({
+      ...parsedData,
+      year: Number(parsedData.year),
+      price: Number(parsedData.price),
+      mileage: parsedData.mileage ? Number(parsedData.mileage) : undefined,
+    });
+
+    // Handle multiple image uploads
+    const imageFiles = formData.getAll('images');
+    const imageUrls: string[] = [];
+
+    for (const file of imageFiles) {
+      if (file instanceof Blob) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        
+        const uploadResult: UploadApiResponse = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'car-listings' },
+            (error, result?: UploadApiResponse) => {
+              if (error) return reject(error);
+              if (!result) return reject(new Error('Upload failed: no result returned'));
+              resolve(result);
+            }
+          );
+          uploadStream.end(buffer);
+        });
+
+        imageUrls.push(uploadResult.secure_url);
+      }
+    }
+
+    // Create car in database with all image URLs
+    const car = await prisma.car.create({
+      data: {
+        ...validatedData,
+        imageUrls, // Store as an array of URLs
+      },
+    });
+
+    return NextResponse.json(car, { status: 201 });
+
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input data', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error('Error creating car:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to create car' }, 
+      { status: 500 }
+    );
+  }
+}
+
+// GET handler remains the same...
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -51,58 +138,5 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error fetching cars:', error);
     return NextResponse.json({ error: 'Failed to fetch cars' }, { status: 500 });
-  }
-}
-
-// 🚗 POST /api/cars
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-
-    // Validate body
-    const validatedData = carSchema.parse(body);
-
-    const {
-      make,
-      model,
-      year,
-      price,
-      mileage,
-      color,
-      inStock,
-      imageUrl,
-      features,
-      fuelType,
-      transmission,
-    } = validatedData;
-
-    // Create car
-    const car = await prisma.car.create({
-      data: {
-        make,
-        model,
-        year,
-        price,
-        transmission: transmission as Transmission,
-        fuelType,
-        ...(mileage !== undefined && { mileage }),
-        ...(color && { color }),
-        ...(inStock !== undefined && { inStock }),
-        ...(features && { features }),
-        ...(imageUrl && { imageUrl }),
-      },
-    });
-
-    return NextResponse.json(car, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error creating car:', error);
-    return NextResponse.json({ error: 'Failed to create car' }, { status: 500 });
   }
 }

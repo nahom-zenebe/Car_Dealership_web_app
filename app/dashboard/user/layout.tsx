@@ -32,7 +32,7 @@ export default function UserDashboardLayout({
   };
 
   const navItems = [
-    { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
     { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: '/vehicles' },
     { icon: <Calendar className="h-5 w-5" />, label: 'Bookings', path: '/bookings' },
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/payments' },

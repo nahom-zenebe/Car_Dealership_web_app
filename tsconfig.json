@@ -24,6 +24,6 @@
       "@lib/*": ["../lib/*"] 
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/dashboard/admin/createcar/page.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/dashboard/admin/createcar/page.js", "app/profile/page.js"],
   "exclude": ["node_modules"]
 }

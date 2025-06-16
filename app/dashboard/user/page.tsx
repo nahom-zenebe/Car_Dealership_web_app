@@ -5,6 +5,11 @@ import { FaSearch, FaFilter, FaUndo } from 'react-icons/fa';
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/app/components/layout/sidebar'; 
 
+
+type Transmission = ' Manual' | 'Automatic' | ' SemiAutomatic'; 
+type FuelType = 'Diesel' | 'Electric' | ' Electric' | 'Hybrid';
+
+
 type Car = {
     id: string;
     make: string;
@@ -12,7 +17,15 @@ type Car = {
     year: number;
     price: number;
     inStock: boolean;
-};
+    mileage: number;
+    color: string;
+    imageUrls: string[];  
+    createdAt: Date;
+    updatedAt: Date;
+    transmission: Transmission;
+    features: string[];  
+    fuelType: FuelType;
+  };
 
 export default function UserDashboard() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,6 +71,12 @@ export default function UserDashboard() {
     year={car.year}
     price={car.price}
     inStock={car.inStock}
+    mileage={car.mileage}
+    color={car.color}
+    imageUrls={car.imageUrls}
+    transmission={car.transmission}
+    fuelType={car.fuelType}
+    
   />
 ))}
 

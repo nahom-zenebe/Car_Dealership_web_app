@@ -50,21 +50,49 @@ export default function CreateCarPage() {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-  
+    
     if (files.length === 0) {
       toast.error("No files selected");
       return;
     }
   
-    const newImages = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    try {
+      setIsSubmitting(true);
+      
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
   
-    setUploadedImages(prev => [...prev, ...newImages]);
-    toast.success("Image uploaded successfully");
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Upload failed');
+        }
+  
+        return { 
+          file, 
+          preview: URL.createObjectURL(file),
+          url: data.url,
+          publicId: data.publicId
+        };
+      });
+  
+      const newImages = await Promise.all(uploadPromises);
+      setUploadedImages(prev => [...prev, ...newImages]);
+      toast.success("Images uploaded successfully");
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(error.message || "Failed to upload images");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleRemoveImage = (index) => {
@@ -79,37 +107,43 @@ export default function CreateCarPage() {
   
 
  
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
   
     try {
-      // Construct JSON payload
-      const payload = {
+      if (uploadedImages.length === 0) {
+        throw new Error("Please upload at least one image");
+      }
+  
+      const formData = new FormData();
+  
+      // Append all images
+      uploadedImages.forEach((image, index) => {
+        formData.append(`images`, image.file);
+      });
+  
+      // Append car data as JSON string
+      formData.append('carData', JSON.stringify({
         make: formData.make,
         model: formData.model,
-        year: Number(formData.year),         
-        price: Number(formData.price), 
-        mileage: formData.mileage,
+        year: Number(formData.year),
+        price: Number(formData.price),
+        mileage: formData.mileage ? Number(formData.mileage) : undefined,
         color: formData.color,
         inStock: formData.inStock,
         features: formData.features,
         fuelType: formData.fuelType,
         transmission: formData.transmission,
-        ...(formData.imageUrl && { imageUrl: formData.imageUrl }) // Must be URL string (no files)
-      };
-  console.log(payload)
-      // Validate imageUrl before sending or upload image separately!
+        description: formData.description,
+      }));
   
-      const response = await fetch('http://localhost:3000/api/cars', {
+      const response = await fetch('/api/cars', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', 
-        },
-        body: JSON.stringify(payload),
+        body: formData,
+        // Don't set Content-Type header - the browser will set it with the correct boundary
       });
-      console.log(payload)
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create listing');
@@ -118,18 +152,17 @@ export default function CreateCarPage() {
       const result = await response.json();
       toast.success("Car listing created successfully!");
   
-      // Reset form and images
+      // Reset form
       setFormData({
         make: '',
         model: '',
         year: 2020,
         price: 0.0,
-        mileage: 20034,
-        color: 'green',
+        mileage: undefined,
+        color: '',
         inStock: true,
-        imageUrl: '',
         description: '',
-        features: [], 
+        features: [],
         transmission: 'Automatic',
         fuelType: 'Gasoline',
       });
