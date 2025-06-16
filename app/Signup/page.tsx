@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
 export default function Signuppage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -10,7 +10,7 @@ export default function Signuppage() {
     phone: '',
     role: 'buyer',
   });
-
+  const router = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -103,7 +103,8 @@ export default function Signuppage() {
         </div>
 
         <button
-          type="submit"
+          
+          onClick={() => router.push('/dashboard/user')}
           className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
         >
           Sign Up

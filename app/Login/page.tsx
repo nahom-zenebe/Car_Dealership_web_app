@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     email: '',
     password: '',
   });
-
+  const router = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
@@ -57,6 +57,7 @@ export default function LoginPage() {
         </div>
 
         <button
+        onClick={() => router.push('/dashboard/user')}
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
         >
