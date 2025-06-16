@@ -33,10 +33,10 @@ export default function UserDashboardLayout({
 
   const navItems = [
     { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
-    { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: '/vehicles' },
+    { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: 'vechile' },
     { icon: <Calendar className="h-5 w-5" />, label: 'Bookings', path: '/bookings' },
-    { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/payments' },
-    { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/analytics' },
+    { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
+    { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
   ];
 
   return (
