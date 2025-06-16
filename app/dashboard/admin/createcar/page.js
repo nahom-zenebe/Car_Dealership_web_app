@@ -85,35 +85,31 @@ export default function CreateCarPage() {
     setIsSubmitting(true);
   
     try {
-      const formDataToSend = new FormData();
+      // Construct JSON payload
+      const payload = {
+        make: formData.make,
+        model: formData.model,
+        year: Number(formData.year),         
+        price: Number(formData.price), 
+        mileage: formData.mileage,
+        color: formData.color,
+        inStock: formData.inStock,
+        features: formData.features,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        ...(formData.imageUrl && { imageUrl: formData.imageUrl }) // Must be URL string (no files)
+      };
+  console.log(payload)
+      // Validate imageUrl before sending or upload image separately!
   
-      // Append all fields
-      formDataToSend.append('make', formData.make);
-      formDataToSend.append('model', formData.model);
-      formDataToSend.append('year', formData.year.toString());
-      formDataToSend.append('price', formData.price.toString());
-      formDataToSend.append('mileage', formData.mileage.toString());
-      formDataToSend.append('color', formData.color);
-      formDataToSend.append('inStock', formData.inStock.toString());
-      formDataToSend.append('fuelType', formData.fuelType);
-      formDataToSend.append('transmission', formData.transmission);
-  
-      // Append features
-      formData.features.forEach(feature => {
-        formDataToSend.append('features', feature);
-      });
-  
-      // Append images
-      uploadedImages.forEach((image) => {
-        formDataToSend.append('images', image.file);
-      });
-  
-      const response = await fetch('/api/cars', {
+      const response = await fetch('http://localhost:3000/api/cars', {
         method: 'POST',
-        body: formDataToSend,
-        // Don't set Content-Type header - FormData will set it automatically
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(payload),
       });
-  
+      console.log(payload)
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create listing');
@@ -121,8 +117,8 @@ export default function CreateCarPage() {
   
       const result = await response.json();
       toast.success("Car listing created successfully!");
-      
-      // Reset form
+  
+      // Reset form and images
       setFormData({
         make: '',
         model: '',
@@ -135,10 +131,10 @@ export default function CreateCarPage() {
         description: '',
         features: [], 
         transmission: 'Automatic',
-        fuelType: 'Gasoline'
+        fuelType: 'Gasoline',
       });
       setUploadedImages([]);
-      
+  
     } catch (error) {
       console.error('Submission error:', error);
       toast.error(error.message || "Failed to create car listing!");
@@ -146,7 +142,7 @@ export default function CreateCarPage() {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -262,9 +258,9 @@ export default function CreateCarPage() {
                           onChange={handleInputChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 appearance-none"
                         >
-                          <option value="automatic">Automatic</option>
-                          <option value="manual">Manual</option>
-                          <option value="semi-automatic">Semi-Automatic</option>
+                          <option value="Automatic">Automatic</option>
+                          <option value="Manual">Manual</option>
+                          <option value="SemiAutomatic">SemiAutomatic</option>
                         </select>
                         <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
                       </div>
@@ -279,10 +275,10 @@ export default function CreateCarPage() {
                           onChange={handleInputChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 appearance-none"
                         >
-                          <option value="gasoline">Gasoline</option>
-                          <option value="diesel">Diesel</option>
-                          <option value="electric">Electric</option>
-                          <option value="hybrid">Hybrid</option>
+                          <option value="Gasoline">Gasoline</option>
+                          <option value="Diesel">Diesel</option>
+                          <option value="Electric">Electric</option>
+                          <option value="Hybrid">Hybrid</option>
                         </select>
                         <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
                       </div>

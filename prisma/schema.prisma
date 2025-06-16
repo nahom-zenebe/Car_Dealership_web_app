@@ -56,6 +56,7 @@ enum Transmission{
   Manual
   SemiAutomatic
 }
+       
 model Customer {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   clerkId      String        @unique
@@ -66,9 +67,8 @@ model Customer {
 
 
 enum FuelType {
-  Gasoline
+ Gasoline
  Diesel
  Electric
  Hybrid
 }
-
