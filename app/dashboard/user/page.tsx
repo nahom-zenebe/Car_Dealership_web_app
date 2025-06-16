@@ -41,7 +41,7 @@ export default function UserDashboard() {
 
     return (
         <div className="bg-gray-100 min-h-screen p-8 flex gap-8">
-            <Sidebar />
+
             <div className="flex flex-col flex-grow">
                 {error && (
                   <div className="text-red-500 mb-4">

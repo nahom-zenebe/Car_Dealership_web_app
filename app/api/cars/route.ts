@@ -4,19 +4,25 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
-// Validation schema for car creation
+// Fuel type enum
+const fuelTypeEnum = z.enum(['Petrol', 'Diesel', 'Electric']);
+const transmissionEnum=z.enum(['Automatic','Manual','SemiAutomatic'])
+// Zod schema
 const carSchema = z.object({
   make: z.string().min(1),
   model: z.string().min(1),
   year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
   price: z.number().positive(),
   mileage: z.number().int().min(0).optional(),
-  color: z.string().min(1),
+  color: z.string().min(1).optional(),
   inStock: z.boolean().optional(),
+  features: z.array(z.string().min(1)).optional(),
+  fuelType: fuelTypeEnum,
+  transmission: transmissionEnum,
   imageUrl: z.string().url().optional(),
 });
 
-// GET /api/cars
+// 🚀 GET /api/cars
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -44,20 +50,16 @@ export async function GET(request: Request) {
     return NextResponse.json(cars);
   } catch (error) {
     console.error('Error fetching cars:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch cars' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch cars' }, { status: 500 });
   }
 }
 
-// POST /api/cars
-// POST /api/cars
+// 🚗 POST /api/cars
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Validate the request body
+    // Validate body
     const validatedData = carSchema.parse(body);
 
     const {
@@ -69,17 +71,22 @@ export async function POST(request: Request) {
       color,
       inStock,
       imageUrl,
+      features,
+      fuelType,
     } = validatedData;
 
+    // Create car
     const car = await prisma.car.create({
       data: {
         make,
         model,
         year,
         price,
-        color,
-        ...(mileage !== undefined && { mileage }), // 👈 include only if not undefined
+        fuelType,
+        ...(mileage !== undefined && { mileage }),
+        ...(color && { color }),
         ...(inStock !== undefined && { inStock }),
+        ...(features && { features }),
         ...(imageUrl && { imageUrl }),
       },
     });
@@ -94,10 +101,6 @@ export async function POST(request: Request) {
     }
 
     console.error('Error creating car:', error);
-    return NextResponse.json(
-      { error: 'Failed to create car' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create car' }, { status: 500 });
   }
 }
-

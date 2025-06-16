@@ -3,21 +3,25 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUpload, FiPlus, FiTrash2, FiChevronDown } from 'react-icons/fi';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function CreateCarPage() {
   const [formData, setFormData] = useState({
     make: '',
     model: '',
-    year: '',
-    price: '',
-    mileage: '',
-    color: '#3b82f6',
-    transmission: 'automatic',
-    fuelType: 'gasoline',
-    description: '',
-    features: [],
+    year: 2020,
+    price: 0.0,
+    mileage: 20034,
+    color: 'green',
+    inStock: true,
+    imageUrl: '',
+    description:'',
+    features: [], 
+    transmission:'Automatic',
+    fuelType:'Gasoline'
   });
-
+  
+  
   const [newFeature, setNewFeature] = useState('');
   const [uploadedImages, setUploadedImages] = useState([]);
   const [activeTab, setActiveTab] = useState('details');
@@ -27,6 +31,7 @@ export default function CreateCarPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
 
   const handleAddFeature = () => {
     if (newFeature.trim() && !formData.features.includes(newFeature.trim())) {
@@ -52,20 +57,73 @@ export default function CreateCarPage() {
       preview: URL.createObjectURL(file)
     }));
     setUploadedImages(prev => [...prev, ...newImages]);
+    toast.success("Image upload succesfully");
+
   };
 
   const handleRemoveImage = (index) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+ 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Submit logic here
-    setTimeout(() => {
+  
+    try {
+      // Prepare the form data for submission
+      const submissionData = {
+        ...formData,
+        images: uploadedImages.map(img => img.file),
+        price: Number(formData.price),
+        year: Number(formData.year),
+        mileage: Number(formData.mileage),
+      };
+  
+      // Create FormData object to handle file uploads
+      const formDataToSend = new FormData();
+      
+      // Append all fields to FormData
+      Object.entries(submissionData).forEach(([key, value]) => {
+        if (key === 'images') {
+          // Append each image file
+          value.forEach((file, index) => {
+            formDataToSend.append(`images`, file);
+          });
+        } else if (Array.isArray(value)) {
+          // Handle arrays (like features)
+          value.forEach(item => {
+            formDataToSend.append(key, item);
+          });
+        } else {
+          formDataToSend.append(key, value);
+        }
+      });
+  
+      // Send the data to your API endpoint
+      const response = await fetch('/api/cars', {
+        method: 'POST',
+        body: formDataToSend,
+        // Don't set Content-Type header - FormData will set it automatically with boundary
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create listing');
+      }
+  
+      const result = await response.json();
+      
+      toast.success("Car listing created successfully!");
+      // Optionally redirect to the new listing
+      // router.push(`/cars/${result.id}`);
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast.error("Car listing not created!");
+    } finally {
       setIsSubmitting(false);
-      alert('Car listing created successfully!');
-    }, 1500);
+    }
   };
 
   return (
@@ -97,7 +155,7 @@ export default function CreateCarPage() {
 
           <form onSubmit={handleSubmit} className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column */}
+        
               <div>
                 {activeTab === 'details' && (
                   <motion.div
@@ -142,8 +200,19 @@ export default function CreateCarPage() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                         required
                       />
+                    </div> 
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        min="1"  
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                       <div className="flex items-center">
