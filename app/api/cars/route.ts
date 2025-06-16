@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '../../generated/prisma';
+import { FuelType, PrismaClient, Transmission } from '../../generated/prisma';
 import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
 // Fuel type enum
-const fuelTypeEnum = z.enum(['Petrol', 'Diesel', 'Electric']);
-const transmissionEnum=z.enum(['Automatic','Manual','SemiAutomatic'])
+const fuelTypeEnum = z.nativeEnum(FuelType);
+const transmissionEnum = z.nativeEnum( Transmission);
 // Zod schema
 const carSchema = z.object({
   make: z.string().min(1),
@@ -73,6 +73,7 @@ export async function POST(request: Request) {
       imageUrl,
       features,
       fuelType,
+      transmission,
     } = validatedData;
 
     // Create car
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
         model,
         year,
         price,
+        transmission: transmission as Transmission,
         fuelType,
         ...(mileage !== undefined && { mileage }),
         ...(color && { color }),

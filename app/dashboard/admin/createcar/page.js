@@ -52,18 +52,31 @@ export default function CreateCarPage() {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+  
+    if (files.length === 0) {
+      toast.error("No files selected");
+      return;
+    }
+  
     const newImages = files.map(file => ({
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
     }));
+  
     setUploadedImages(prev => [...prev, ...newImages]);
-    toast.success("Image upload succesfully");
-
+    toast.success("Image uploaded successfully");
   };
-
+  
   const handleRemoveImage = (index) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages(prev => {
+     
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.preview);
+  
+      return prev.filter((_, i) => i !== index);
+    });
   };
+  
 
  
 
@@ -72,55 +85,63 @@ export default function CreateCarPage() {
     setIsSubmitting(true);
   
     try {
-      // Prepare the form data for submission
-      const submissionData = {
-        ...formData,
-        images: uploadedImages.map(img => img.file),
-        price: Number(formData.price),
-        year: Number(formData.year),
-        mileage: Number(formData.mileage),
-      };
-  
-      // Create FormData object to handle file uploads
       const formDataToSend = new FormData();
-      
-      // Append all fields to FormData
-      Object.entries(submissionData).forEach(([key, value]) => {
-        if (key === 'images') {
-          // Append each image file
-          value.forEach((file, index) => {
-            formDataToSend.append(`images`, file);
-          });
-        } else if (Array.isArray(value)) {
-          // Handle arrays (like features)
-          value.forEach(item => {
-            formDataToSend.append(key, item);
-          });
-        } else {
-          formDataToSend.append(key, value);
-        }
+  
+      // Append all fields
+      formDataToSend.append('make', formData.make);
+      formDataToSend.append('model', formData.model);
+      formDataToSend.append('year', formData.year.toString());
+      formDataToSend.append('price', formData.price.toString());
+      formDataToSend.append('mileage', formData.mileage.toString());
+      formDataToSend.append('color', formData.color);
+      formDataToSend.append('inStock', formData.inStock.toString());
+      formDataToSend.append('fuelType', formData.fuelType);
+      formDataToSend.append('transmission', formData.transmission);
+  
+      // Append features
+      formData.features.forEach(feature => {
+        formDataToSend.append('features', feature);
       });
   
-      // Send the data to your API endpoint
+      // Append images
+      uploadedImages.forEach((image) => {
+        formDataToSend.append('images', image.file);
+      });
+  
       const response = await fetch('/api/cars', {
         method: 'POST',
         body: formDataToSend,
-        // Don't set Content-Type header - FormData will set it automatically with boundary
+        // Don't set Content-Type header - FormData will set it automatically
       });
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create listing');
+        throw new Error(errorData.error || 'Failed to create listing');
       }
   
       const result = await response.json();
-      
       toast.success("Car listing created successfully!");
-      // Optionally redirect to the new listing
-      // router.push(`/cars/${result.id}`);
+      
+      // Reset form
+      setFormData({
+        make: '',
+        model: '',
+        year: 2020,
+        price: 0.0,
+        mileage: 20034,
+        color: 'green',
+        inStock: true,
+        imageUrl: '',
+        description: '',
+        features: [], 
+        transmission: 'Automatic',
+        fuelType: 'Gasoline'
+      });
+      setUploadedImages([]);
+      
     } catch (error) {
       console.error('Submission error:', error);
-      toast.error("Car listing not created!");
+      toast.error(error.message || "Failed to create car listing!");
     } finally {
       setIsSubmitting(false);
     }

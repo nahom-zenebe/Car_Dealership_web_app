@@ -30,11 +30,7 @@ export async function GET(
                         seller: true,
                     },
                 },
-                appointments: {
-                    include: {
-                        customer: true,
-                    },
-                },
+                
             },
         });
         

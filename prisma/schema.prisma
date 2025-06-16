@@ -20,7 +20,7 @@ model Car {
   imageUrl     String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime?      @updatedAt
-  transmission  transmission[]
+  transmission  Transmission
   sales        Sale[]
   features     String[]
   fuelType     FuelType
@@ -51,7 +51,11 @@ model Seller {
   sales     Sale[]
   createdAt DateTime @default(now())
 }
-
+enum Transmission{
+  Automatic
+  Manual
+  SemiAutomatic
+}
 model Customer {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   clerkId      String        @unique
@@ -60,14 +64,11 @@ model Customer {
   sales        Sale[]        
 }
 
+
 enum FuelType {
   Gasoline
  Diesel
  Electric
  Hybrid
 }
-enum transmission{
-  Automatic
-  Manual
-  SemiAutomatic
-}
+
