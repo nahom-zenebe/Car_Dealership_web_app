@@ -16,10 +16,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import toast, { Toaster } from 'react-hot-toast';
 import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car, Calendar, Wallet, BarChart2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateTo } from '@/app/Hook/useNavigateTo';
+import { useAppStore,} from '@/app/stores/useAppStore';
+
 export default function UserDashboardLayout({
   children,
 }: {
@@ -28,7 +31,9 @@ export default function UserDashboardLayout({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const navigateTo = useNavigateTo();
- 
+  const logout = useAppStore((state) => state.logout);
+  const  user = useAppStore((state) => state. user);
+
 
   const navItems = [
     { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
@@ -37,6 +42,26 @@ export default function UserDashboardLayout({
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
   ];
+
+  const handleOnLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+  
+      if (!res.ok) {
+        throw new Error('Logout failed');
+      }
+  
+      toast.success("Logout successful");
+      router.push('/dashboard/user');
+    } catch (err) {
+      console.error('Logout error:', err);
+      alert('Failed to logout. Please try again.');
+    }
+  };
+  
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -92,8 +117,8 @@ export default function UserDashboardLayout({
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-gray-900">John Doe</p>
-                    <p className="text-xs text-gray-500">Premium Member</p>
+                    <p className="text-sm font-medium text-gray-900">  { user?.name} ?? John Doe</p>
+                    <p className="text-xs text-gray-500">{ user?.email}??Guest@gmail.com</p>
                   </div>
                   <ChevronDown className="ml-auto h-4 w-4 text-gray-500" />
                 </button>
@@ -111,7 +136,7 @@ export default function UserDashboardLayout({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => navigateTo('/logout')}
+                  onClick={handleOnLogout}
                   className="text-red-600 focus:bg-red-50"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -166,7 +191,7 @@ export default function UserDashboardLayout({
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => navigateTo('/logout')}
+                    onClick={handleOnLogout}
                     className="text-red-600 focus:bg-red-50"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
