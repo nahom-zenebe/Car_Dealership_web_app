@@ -21,9 +21,16 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@lib/*": ["../lib/*"] 
+      "@lib/*": ["../lib/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/dashboard/admin/createcar/page.js", "app/UserAccountprofile/page.js"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/dashboard/admin/createcar/page.js",
+    "app/dashboard/user/UserAccountprofile/page.js"
+  ],
   "exclude": ["node_modules"]
 }

@@ -68,35 +68,7 @@ export default function UserProfile() {
   const [testDrives, setTestDrives] = useState([]);
 
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userId = '123'; 
-        
-        const userResponse = await axios.get(`/api/users/${userId}`);
-        setUser(userResponse.data);
-        setTempUser(userResponse.data);
-        
-        const purchasesResponse = await axios.get(`/api/users/${userId}/purchases`);
-        setPurchaseHistory(purchasesResponse.data);
-        
-        const servicesResponse = await axios.get(`/api/users/${userId}/services`);
-        setServiceHistory(servicesResponse.data);
-        
-        const testDrivesResponse = await axios.get(`/api/users/${userId}/test-drives`);
-        setTestDrives(testDrivesResponse.data);
-        
-        setLoading(false);
-      } catch (error) {
-        toast.error('Failed to load user data');
-        console.error(error);
-        setLoading(false);
-      }
-    };
-    
-    fetchUserData();
-  }, []);
-
+  
   const handleEditClick = () => {
     setEditMode(true);
   };
@@ -158,9 +130,7 @@ export default function UserProfile() {
     }
   };
 
-  if (loading) {
-    return <div className="p-4 text-center">Loading profile...</div>;
-  }
+ 
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -424,15 +394,15 @@ export default function UserProfile() {
                 </TabsContent>
                 
                 <TabsContent value="purchases" className="pt-4">
-                  <VehiclePurchaseHistory purchases={purchaseHistory} />
+                 
                 </TabsContent>
                 
                 <TabsContent value="services" className="pt-4">
-                  <ServiceAppointments services={serviceHistory} />
+                 
                 </TabsContent>
                 
                 <TabsContent value="test-drives" className="pt-4">
-                  <TestDrives testDrives={testDrives} />
+                 
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -440,11 +410,7 @@ export default function UserProfile() {
         </div>
       </div>
       
-      <ChangePasswordDialog
-        open={openPasswordDialog}
-        onClose={() => setOpenPasswordDialog(false)}
-        userId={user.id}
-      />
+      
     </div>
   );
 }

@@ -117,8 +117,8 @@ export default function UserDashboardLayout({
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-gray-900">  { user?.name} ?? John Doe</p>
-                    <p className="text-xs text-gray-500">{ user?.email}??Guest@gmail.com</p>
+                    <p className="text-sm font-medium text-gray-900">  { user?.name ?? "John Doe"}  </p>
+                    <p className="text-xs text-gray-500">{ user?.email??"Guest@gmail.com"}</p>
                   </div>
                   <ChevronDown className="ml-auto h-4 w-4 text-gray-500" />
                 </button>
