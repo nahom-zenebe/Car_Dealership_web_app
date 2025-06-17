@@ -3,7 +3,7 @@ import { PrismaClient } from '../../generated/prisma';
 import { z } from 'zod';
 
 const prisma = new PrismaClient();
-
+const JWT_SECRET = process.env.JWT_SECRET; 
 // Validation schema for sale creation
 const saleSchema = z.object({
   carId: z.string(),
@@ -37,8 +37,8 @@ export async function GET(request: Request) {
       where,
       include: {
         car: true,
-        customer: true,
-        seller: true,
+
+
       },
       orderBy: { saleDate: 'desc' },
     });
@@ -69,8 +69,8 @@ export async function POST(request: Request) {
         },
         include: {
           car: true,
-          customer: true,
-          seller: true,
+          
+
         },
       });
 

@@ -2,25 +2,51 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
 export default function Signuppage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     phone: '',
-    role: 'buyer',
+    role: 'buyer' as const,
   });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    setIsLoading(true);
+    setError(null);
 
-    // TODO: Replace this with actual API call (e.g., using Clerk, Supabase, etc.)
+    try {
+      const response = await fetch('http://localhost:3000/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sign up');
+      }
+
+      // Redirect to dashboard after successful signup
+      router.push('/dashboard/user');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      console.error('Signup error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,6 +56,12 @@ export default function Signuppage() {
         className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full space-y-6"
       >
         <h2 className="text-3xl font-bold text-center text-blue-600">Create an Account</h2>
+
+        {error && (
+          <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -41,7 +73,7 @@ export default function Signuppage() {
             required
             value={formData.name}
             onChange={handleChange}
-            className="mt-1 w-full px-4 py-3 border text-black  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-4 py-3 border text-black rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -55,7 +87,7 @@ export default function Signuppage() {
             required
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 w-full px-4 py-3 text-black  border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-4 py-3 text-black border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -83,7 +115,7 @@ export default function Signuppage() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 w-full px-4 py-3 border  text-black  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-4 py-3 border text-black rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -95,7 +127,7 @@ export default function Signuppage() {
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="mt-1 w-full px-4 py-3 border text-black  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-4 py-3 border text-black rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="buyer">Buyer</option>
             <option value="seller">Seller</option>
@@ -103,11 +135,11 @@ export default function Signuppage() {
         </div>
 
         <button
-          
-          onClick={() => router.push('/dashboard/user')}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign Up
+          {isLoading ? 'Signing Up...' : 'Sign Up'}
         </button>
 
         <p className="text-center text-sm text-gray-600">
