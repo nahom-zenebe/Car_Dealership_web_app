@@ -15,10 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car, Calendar, Wallet, BarChart2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
+import { useNavigateTo } from '@/app/Hook/useNavigateTo';
 export default function UserDashboardLayout({
   children,
 }: {
@@ -26,10 +27,8 @@ export default function UserDashboardLayout({
 }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
+  const navigateTo = useNavigateTo();
+ 
 
   const navItems = [
     { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
@@ -70,7 +69,7 @@ export default function UserDashboardLayout({
               {navItems.map((item) => (
                 <li key={item.label}>
                   <button
-                    onClick={() => handleNavigation(item.path)}
+                    onClick={() => navigateTo(item.path)}
                     className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200 group"
                   >
                     <span className="mr-3 group-hover:scale-110 transition-transform">
@@ -102,17 +101,17 @@ export default function UserDashboardLayout({
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleNavigation('/account')}>
+                <DropdownMenuItem onClick={() => navigateTo('/UserAccountprofile')}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleNavigation('/settings')}>
+                <DropdownMenuItem onClick={() => navigateTo('/settings')}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => handleNavigation('/logout')}
+                  onClick={() => navigateTo('/logout')}
                   className="text-red-600 focus:bg-red-50"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -157,17 +156,17 @@ export default function UserDashboardLayout({
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleNavigation('/account')}>
+                  <DropdownMenuItem onClick={() => navigateTo('/account')}>
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleNavigation('/settings')}>
+                  <DropdownMenuItem onClick={() => navigateTo('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => handleNavigation('/logout')}
+                    onClick={() => navigateTo('/logout')}
                     className="text-red-600 focus:bg-red-50"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -217,7 +216,7 @@ export default function UserDashboardLayout({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => handleNavigation(item.path)}
+                          onClick={() => navigateTo(item.path)}
                           className="p-3 text-gray-600 hover:text-indigo-600 transition"
                         >
                           {item.icon}

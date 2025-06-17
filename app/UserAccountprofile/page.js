@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -40,10 +41,7 @@ import {
   History,
   User,
 } from "lucide-react";
-import VehiclePurchaseHistory from './VehiclePurchaseHistory';
-import ServiceAppointments from './ServiceAppointments';
-import TestDrives from './TestDrives';
-import ChangePasswordDialog from './ChangePasswordDialog';
+
 
 export default function UserProfile() {
   const [user, setUser] = useState({
@@ -68,12 +66,12 @@ export default function UserProfile() {
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [serviceHistory, setServiceHistory] = useState([]);
   const [testDrives, setTestDrives] = useState([]);
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userId = '123'; // Replace with actual user ID
+        const userId = '123'; 
         
         const userResponse = await axios.get(`/api/users/${userId}`);
         setUser(userResponse.data);
