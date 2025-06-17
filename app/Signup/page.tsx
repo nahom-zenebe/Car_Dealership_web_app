@@ -1,7 +1,12 @@
 'use client';
 
+
+
+import toast, { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAppStore} from '@/app/stores/useAppStore';
+
 
 export default function Signuppage() {
   const [formData, setFormData] = useState({
@@ -11,6 +16,7 @@ export default function Signuppage() {
     phone: '',
     role: 'buyer' as const,
   });
+  const signup = useAppStore((state) => state.signup);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -26,7 +32,7 @@ export default function Signuppage() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth', {
+      const response = await fetch('http://localhost:3000/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,21 +40,34 @@ export default function Signuppage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to sign up');
+        throw new Error(data.error || 'Failed to sign up');
       }
 
-      // Redirect to dashboard after successful signup
-      router.push('/dashboard/user');
+      // Update Zustand store
+      signup({
+        id: data.user.id,
+        name: formData.name,
+        email: formData.email,
+        role: formData.role
+      }, data.token);
+
+      toast.success("Signup successful");
+      
+      if(formData.role === "buyer") {
+        router.push('/dashboard/user');
+      } else {
+        router.push('/dashboard/admin');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      console.error('Signup error:', err);
+      toast.error(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form
