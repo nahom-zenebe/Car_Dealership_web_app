@@ -34,23 +34,48 @@ model Sale {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   car         Car      @relation(fields: [carId], references: [id])
   carId       String   @db.ObjectId
-  customer    Customer @relation(fields: [customerId], references: [id])
-  customerId  String   @db.ObjectId
   saleDate    DateTime @default(now())
   price       Float
-  seller      Seller   @relation(fields: [sellerId], references: [id])
-  sellerId    String   @db.ObjectId
 }
 
-model Seller {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId   String   @unique
-  name      String
-  email     String   @unique
-  phone     String?
-  sales     Sale[]
-  createdAt DateTime @default(now())
+model User {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  name                  String
+  email                 String   @unique
+  passwordHash          String
+  role                  UserRole
+
+  phone                 String?
+  address               String?
+
+  profilePhotoUrl       String?
+  passportPhotoUrl      String?
+  governmentIdFrontUrl  String?
+  governmentIdBackUrl   String?
+  selfieWithIdUrl       String?
+
+  isVerified            Boolean  @default(false)
+  verificationStatus    VerificationStatus @default(pending)
+  verificationComments  String?
+  verifiedAt            DateTime?
+  verifiedByAdminId     String?  @db.ObjectId
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
+
+enum UserRole {
+  buyer
+  seller
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
 enum Transmission{
   Automatic
   Manual
@@ -64,13 +89,8 @@ enum FuelType {
  Hybrid
 }
        
-model Customer {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId      String        @unique
-  name         String?
-  createdAt    DateTime      @default(now())
-  sales        Sale[]        
-}
+
+
 
 
 
