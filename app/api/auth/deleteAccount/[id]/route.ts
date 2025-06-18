@@ -13,7 +13,7 @@ export async function DELETE(req:NextRequest,context: { params: { id: string } }
         where:{id}
       })
       if (!user) {
-        return NextResponse.json({ error: 'Car not found' }, { status: 404 });
+        return NextResponse.json({ error: 'user not found' }, { status: 404 });
       }
       const response = NextResponse.json({ message: 'Logged out successfully' });
       response.cookies.set('token', '', {
