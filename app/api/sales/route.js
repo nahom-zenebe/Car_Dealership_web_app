@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '../../generated/prisma';
 import { z } from 'zod';
 
-
 const prisma = new PrismaClient();
 
-// Enhanced validation schema for sale creation
+
 const saleSchema = z.object({
-  carId: z.string(),
   buyerId: z.string(),
-  price: z.number().positive(),
+  items: z.array(
+    z.object({
+      carId: z.string(),
+      price: z.number().positive(),
+    })
+  ).min(1),
   paymentType: z.enum(['CreditCard', 'BankTransfer', 'Financing']),
   deliveryAddress: z.string().min(10),
   deliveryDate: z.string().datetime().optional(),
@@ -18,13 +21,12 @@ const saleSchema = z.object({
   status: z.enum(['pending', 'completed', 'cancelled', 'delivered']).optional().default('completed'),
 });
 
-// GET /api/sales
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const buyerId = searchParams.get('buyerId');
-    const carId = searchParams.get('carId');
-    const status = searchParams.get('status') ;
+    const status = searchParams.get('status');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const page = parseInt(searchParams.get('page') || '1');
@@ -32,7 +34,6 @@ export async function GET(request) {
 
     const where = {};
     if (buyerId) where.buyerId = buyerId;
-    if (carId) where.carId = carId;
     if (status) where.status = status;
     if (startDate || endDate) {
       where.saleDate = {};
@@ -44,18 +45,10 @@ export async function GET(request) {
       prisma.sale.findMany({
         where,
         include: {
-          car: {
-            select: {
-              make: true,
-              model: true,
-              year: true,
-              imageUrls: true
-            }
-          },
-          buyer: {
-            select: {
-              name: true,
-              email: true
+          buyer: { select: { name: true, email: true } },
+          items: {
+            include: {
+              car: { select: { make: true, model: true, year: true, imageUrls: true } }
             }
           }
         },
@@ -84,73 +77,64 @@ export async function GET(request) {
   }
 }
 
-// POST /api/sales - Create a new sale (checkout completion)
+// 🟡 POST /api/sales — create sale with multiple SaleItem records
 export async function POST(request) {
   try {
     const body = await request.json();
     const validatedData = saleSchema.parse(body);
 
-    // Calculate final price including optional features
-    const car = await prisma.car.findUnique({
-      where: { id: validatedData.carId },
-      select: { price: true, warrantyPrice: true, paintPrice: true }
+    // Fetch all cars involved in the sale to validate and enrich data
+    const carIds = validatedData.items.map(item => item.carId);
+    const cars = await prisma.car.findMany({
+      where: { id: { in: carIds } },
+      select: { id: true, inStock: true }
     });
 
-    if (!car) {
-      return NextResponse.json(
-        { error: 'Car not found' },
-        { status: 404 }
-      );
+    if (cars.length !== carIds.length) {
+      return NextResponse.json({ error: 'One or more cars not found' }, { status: 404 });
     }
 
-    let finalPrice = validatedData.price;
-    if (validatedData.warrantyIncluded && car.warrantyPrice) {
-      finalPrice += car.warrantyPrice;
-    }
-    if (validatedData.premiumPaint && car.paintPrice) {
-      finalPrice += car.paintPrice;
+    const unavailableCars = cars.filter(car => !car.inStock);
+    if (unavailableCars.length > 0) {
+      return NextResponse.json({ error: 'Some cars are no longer available' }, { status: 400 });
     }
 
-    // Start a transaction for atomic operations
+    // 🔐 Start a transaction for the whole purchase process
     const sale = await prisma.$transaction(async (tx) => {
-      // Create the sale record
       const newSale = await tx.sale.create({
         data: {
-          carId: validatedData.carId,
           buyerId: validatedData.buyerId,
-          price: finalPrice,
-          paymentType: validatedData.paymentType ,
+          price: validatedData.items.reduce((sum, item) => sum + item.price, 0),
+          paymentType: validatedData.paymentType,
           status: validatedData.status,
           deliveryAddress: validatedData.deliveryAddress,
           deliveryDate: validatedData.deliveryDate ? new Date(validatedData.deliveryDate) : null,
           saleDate: new Date(),
-        },
-        include: {
-          car: {
-            select: {
-              make: true,
-              model: true,
-              imageUrls: true
-            }
-          },
-          buyer: {
-            select: {
-              name: true,
-              email: true
-            }
-          }
         }
       });
 
-      // Update car availability
-      await tx.car.update({
-        where: { id: validatedData.carId },
-        data: { inStock: false },
+      // 📦 Create SaleItem records
+      await Promise.all(
+        validatedData.items.map(item =>
+          tx.saleItem.create({
+            data: {
+              saleId: newSale.id,
+              carId: item.carId,
+              price: item.price,
+            }
+          })
+        )
+      );
+
+      // 🔄 Mark all cars as sold (not in stock)
+      await tx.car.updateMany({
+        where: { id: { in: carIds } },
+        data: { inStock: false }
       });
 
-      // If this was a credit card payment, save it if not already saved
+      // 💳 Optionally store credit card if it's a CC payment
       if (validatedData.paymentType === 'CreditCard') {
-        const existingMethod = await tx.paymentMethod.findFirst({
+        const exists = await tx.paymentMethod.findFirst({
           where: {
             userId: validatedData.buyerId,
             type: 'CreditCard',
@@ -158,14 +142,13 @@ export async function POST(request) {
           }
         });
 
-        if (!existingMethod) {
+        if (!exists) {
           await tx.paymentMethod.create({
             data: {
               userId: validatedData.buyerId,
               type: 'CreditCard',
               isDefault: true,
-              // Note: In a real app, you'd store encrypted payment info
-              cardNumber: '•••• •••• •••• ••••', // Last 4 digits only
+              cardNumber: '•••• •••• •••• ••••',
               cardName: 'Primary Card'
             }
           });
@@ -186,9 +169,9 @@ export async function POST(request) {
 
     console.error('Error creating sale:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to complete purchase',
-        details: error instanceof Error ? error.message : null 
+        details: error instanceof Error ? error.message : null
       },
       { status: 500 }
     );
