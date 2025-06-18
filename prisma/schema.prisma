@@ -34,9 +34,16 @@ model Sale {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   car         Car      @relation(fields: [carId], references: [id])
   carId       String   @db.ObjectId
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  buyerId     String   @db.ObjectId
   saleDate    DateTime @default(now())
   price       Float
+  paymentType PaymentType
+  status      SaleStatus @default(completed)
+  deliveryAddress String
+  deliveryDate DateTime?
 }
+
 
 model User {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -56,6 +63,35 @@ model User {
   verifiedByAdminId     String?  @db.ObjectId
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+  purchases             Sale[]
+  savedPaymentMethods   PaymentMethod[]
+}
+
+model PaymentMethod {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @db.ObjectId
+  type           PaymentType
+  cardNumber     String?  // Last 4 digits for security
+  cardExpiry     String?
+  cardName       String?
+  isDefault      Boolean  @default(false)
+  bankName       String?  // For bank transfers
+  accountNumber  String?  // For bank transfers
+  routingNumber  String?  // For bank transfers (US)
+  createdAt      DateTime @default(now())
+}
+enum PaymentType {
+  CreditCard
+  BankTransfer
+  Financing
+}
+
+enum SaleStatus {
+  pending
+  completed
+  cancelled
+  delivered
 }
 
 enum UserRole {

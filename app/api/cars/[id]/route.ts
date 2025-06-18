@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+
 import { PrismaClient } from '../../../generated/prisma';
 import { z } from 'zod';
-
+import { NextRequest, NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 // Validation schema for car update
@@ -16,34 +16,39 @@ const carUpdateSchema = z.object({
   imageUrl: z.string().url().optional(),
 });
 
+
+
+
+
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
-    try {
-        const car = await prisma.car.findUnique({
-            where: { id: params.id },
-            include: {
-                sales: {
-                    include: {
-                        customer: true,
-                        seller: true,
-                    },
-                },
-                
-            },
-        });
-        
-        if (!car) {
-            return NextResponse.json({ error: 'Car not found' }, { status: 404 });
-        }
-        
-        return NextResponse.json(car, { status: 200 });
-    } catch (error) {
-        console.error('Error fetching car:', error);
-        return NextResponse.json({ error: 'Failed to fetch car' }, { status: 500 });
+  try {
+    const { id } = context.params;
+
+    const car = await prisma.car.findUnique({
+      where: { id },
+      include: {
+        sales: {
+          include: {
+            // We'll fix this below
+          },
+        },
+      },
+    });
+
+    if (!car) {
+      return NextResponse.json({ error: 'Car not found' }, { status: 404 });
     }
+
+    return NextResponse.json(car);
+  } catch (err) {
+    console.error('Error fetching car:', err);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
+
 
 export async function PUT(
     request: Request,

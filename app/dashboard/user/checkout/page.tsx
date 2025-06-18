@@ -9,11 +9,12 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('credit');
 
   const cartItems = [
-    { id: 1, name: 'Premium Car Rental - Tesla Model S', price: 199, days: 3, image: '/tesla-model-s.jpg' },
-    { id: 2, name: 'Insurance Coverage', price: 29, days: 3, image: '/insurance-icon.svg' }
+    { id: 1, name: 'Tesla Model S', price: 79990, quantity: 1, image: '/tesla-model-s.jpg' },
+    { id: 2, name: 'Extended Warranty', price: 3500, quantity: 1, image: '/warranty-icon.svg' },
+    { id: 3, name: 'Premium Paint', price: 1500, quantity: 1, image: '/paint-icon.svg' }
   ];
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.days), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
@@ -27,9 +28,9 @@ export default function CheckoutPage() {
             transition={{ duration: 0.5 }}
             className="text-4xl font-bold text-gray-900 mb-2"
           >
-            Complete Your Booking
+            Complete Your Purchase
           </motion.h1>
-          <p className="text-lg text-gray-600">Final step before your luxury experience</p>
+          <p className="text-lg text-gray-600">Final step to own your dream car</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -61,7 +62,7 @@ export default function CheckoutPage() {
             >
               {activeTab === 'delivery' && (
                 <div className="p-6">
-                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Delivery Information</h2>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Customer Information</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -81,11 +82,11 @@ export default function CheckoutPage() {
                       <input type="tel" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
                       <textarea rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Preferences</label>
                       <textarea rows={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Any special delivery requirements?"></textarea>
                     </div>
                   </div>
@@ -119,7 +120,7 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Payment Method</h2>
                   
                   <div className="space-y-4 mb-8">
-                    {['credit', 'paypal', 'bank'].map((method) => (
+                    {['credit', 'finance', 'bank'].map((method) => (
                       <div 
                         key={method}
                         onClick={() => setPaymentMethod(method)}
@@ -132,9 +133,16 @@ export default function CheckoutPage() {
                             )}
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-medium text-gray-800 capitalize">{method === 'credit' ? 'Credit Card' : method === 'paypal' ? 'PayPal' : 'Bank Transfer'}</h3>
+                            <h3 className="font-medium text-gray-800 capitalize">
+                              {method === 'credit' ? 'Credit Card' : 
+                               method === 'finance' ? 'Financing' : 
+                               'Bank Transfer'}
+                            </h3>
                             {method === 'credit' && (
                               <p className="text-sm text-gray-500 mt-1">Pay with Visa, Mastercard, or American Express</p>
+                            )}
+                            {method === 'finance' && (
+                              <p className="text-sm text-gray-500 mt-1">Apply for financing options</p>
                             )}
                           </div>
                           {method === 'credit' && (
@@ -188,6 +196,52 @@ export default function CheckoutPage() {
                             </div>
                           </motion.div>
                         )}
+
+                        {paymentMethod === method && method === 'finance' && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            transition={{ duration: 0.3 }}
+                            className="mt-4 pt-4 border-t border-gray-200"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Annual Income</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="$" 
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Down Payment</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="$" 
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Loan Term</label>
+                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                  <option>36 months</option>
+                                  <option>48 months</option>
+                                  <option>60 months</option>
+                                  <option>72 months</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Credit Score</label>
+                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                  <option>Excellent (720+)</option>
+                                  <option>Good (660-719)</option>
+                                  <option>Fair (620-659)</option>
+                                  <option>Poor (below 620)</option>
+                                </select>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -203,7 +257,7 @@ export default function CheckoutPage() {
                       onClick={() => setActiveTab('confirmation')}
                       className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md"
                     >
-                      Complete Booking
+                      Complete Purchase
                     </button>
                   </div>
                 </div>
@@ -217,8 +271,8 @@ export default function CheckoutPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">Booking Confirmed!</h2>
-                    <p className="text-gray-600">Your luxury car rental has been successfully booked.</p>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">Purchase Confirmed!</h2>
+                    <p className="text-gray-600">Your new car is on its way to you.</p>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
@@ -232,10 +286,10 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                               <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
-                              <p className="text-xs text-gray-500">{item.days} days</p>
+                              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                             </div>
                           </div>
-                          <div className="text-sm font-medium text-gray-800">${(item.price * item.days).toFixed(2)}</div>
+                          <div className="text-sm font-medium text-gray-800">${(item.price * item.quantity).toFixed(2)}</div>
                         </div>
                       ))}
                     </div>
@@ -256,14 +310,14 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="mb-6">
-                    <p className="text-gray-600 mb-4">A confirmation has been sent to your email.</p>
+                    <p className="text-gray-600 mb-4">A confirmation has been sent to your email. Our sales representative will contact you shortly.</p>
                     <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
-                      View Booking Details
+                      View Purchase Details
                     </button>
                   </div>
 
                   <div className="text-center text-sm text-gray-500">
-                    <p>Need help? <a href="#" className="text-blue-600 hover:underline">Contact our support team</a></p>
+                    <p>Need help? <a href="#" className="text-blue-600 hover:underline">Contact our sales team</a></p>
                   </div>
                 </div>
               )}
@@ -274,7 +328,7 @@ export default function CheckoutPage() {
           <div className="lg:w-1/3">
             <div className="bg-white rounded-xl shadow-sm sticky top-8 overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800">Your Booking</h2>
+                <h2 className="text-lg font-semibold text-gray-800">Your Order</h2>
               </div>
 
               <div className="p-6">
@@ -287,10 +341,10 @@ export default function CheckoutPage() {
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
-                          <p className="text-xs text-gray-500">{item.days} days</p>
+                          <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                         </div>
                       </div>
-                      <div className="text-sm font-medium text-gray-800">${(item.price * item.days).toFixed(2)}</div>
+                      <div className="text-sm font-medium text-gray-800">${(item.price * item.quantity).toFixed(2)}</div>
                     </div>
                   ))}
                 </div>
@@ -324,7 +378,7 @@ export default function CheckoutPage() {
                     onClick={() => setActiveTab('confirmation')}
                     className="w-full mt-6 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md"
                   >
-                    Complete Booking
+                    Complete Purchase
                   </button>
                 )}
               </div>

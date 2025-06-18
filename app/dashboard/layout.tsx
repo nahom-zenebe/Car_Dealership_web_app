@@ -126,7 +126,7 @@ export default function UserDashboardLayout({
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigateTo('/UserAccountprofile')}>
+                <DropdownMenuItem onClick={() => navigateTo('/dashboard/user/UserAccountprofile')}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
