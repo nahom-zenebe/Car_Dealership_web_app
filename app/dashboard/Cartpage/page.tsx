@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import toast, { Toaster } from 'react-hot-toast';
-
+import { useRouter } from 'next/navigation';
 export default function CartPage() {
   const {
     items,
@@ -19,11 +19,11 @@ export default function CartPage() {
     totalPrice,
     clearCart,
   } = useCartStore();
-
+  const router = useRouter();
 
   const handleCheckout = () => {
-    toast.success("Checkout successful!");
-    clearCart();
+    router.push('/dashboard/user/checkout');
+  
   };
 
   if (items.length === 0) {
@@ -37,7 +37,7 @@ export default function CartPage() {
         <ShoppingCart className="w-16 h-16 text-gray-400" />
         <h2 className="text-2xl font-bold text-gray-700">Your cart is empty</h2>
         <p className="text-gray-500">Looks like you haven't added any items yet</p>
-        <Button variant="outline" className="mt-4">
+        <Button onClick={()=>router.push('/dashboard/user')} variant="outline" className="mt-4">
           Continue Shopping
         </Button>
       </motion.div>

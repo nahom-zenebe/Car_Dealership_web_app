@@ -2,19 +2,26 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-
+import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import { useCartStore } from "@/app/stores/useAppStore";
 export default function CheckoutPage() {
   const [activeTab, setActiveTab] = useState('delivery');
   const [saveInfo, setSaveInfo] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('credit');
+  const {
+    items,
+    incrementQuantity,
+    decrementQuantity,
+    removeFromCart,
+    totalPrice,
+    clearCart,
+  } = useCartStore();
+  const router = useRouter();
 
-  const cartItems = [
-    { id: 1, name: 'Tesla Model S', price: 79990, quantity: 1, image: '/tesla-model-s.jpg' },
-    { id: 2, name: 'Extended Warranty', price: 3500, quantity: 1, image: '/warranty-icon.svg' },
-    { id: 3, name: 'Premium Paint', price: 1500, quantity: 1, image: '/paint-icon.svg' }
-  ];
+ 
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
@@ -278,7 +285,7 @@ export default function CheckoutPage() {
                   <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
                     <h3 className="font-medium text-gray-800 mb-4">Order Summary</h3>
                     <div className="space-y-4">
-                      {cartItems.map(item => (
+                      {items.map(item => (
                         <div key={item.id} className="flex justify-between">
                           <div className="flex items-center">
                             <div className="w-12 h-12 bg-gray-200 rounded-md mr-3 overflow-hidden">
@@ -333,7 +340,7 @@ export default function CheckoutPage() {
 
               <div className="p-6">
                 <div className="space-y-4 mb-6">
-                  {cartItems.map(item => (
+                  {items.map(item => (
                     <div key={item.id} className="flex justify-between">
                       <div className="flex items-center">
                         <div className="w-12 h-12 bg-gray-200 rounded-md mr-3 overflow-hidden">

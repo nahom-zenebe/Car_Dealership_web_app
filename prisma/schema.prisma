@@ -21,7 +21,7 @@ model Car {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime?      @updatedAt
   transmission  Transmission?
-  sales        Sale[]
+   saleItems SaleItem[]
   features     String[]
   fuelType     FuelType?
 }
@@ -31,19 +31,26 @@ model Car {
 
 
 model Sale {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  car         Car      @relation(fields: [carId], references: [id])
-  carId       String   @db.ObjectId
-  buyer       User     @relation(fields: [buyerId], references: [id])
-  buyerId     String   @db.ObjectId
-  saleDate    DateTime @default(now())
-  price       Float
-  paymentType PaymentType
-  status      SaleStatus @default(completed)
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  buyer           User        @relation(fields: [buyerId], references: [id])
+  buyerId         String      @db.ObjectId
+  saleDate        DateTime    @default(now())
+  price           Float
+  paymentType     PaymentType
+  status          SaleStatus  @default(completed)
   deliveryAddress String
-  deliveryDate DateTime?
+  deliveryDate    DateTime?
+  items           SaleItem[]  
 }
 
+model SaleItem {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  sale     Sale     @relation(fields: [saleId], references: [id])
+  saleId   String   @db.ObjectId
+  car      Car      @relation(fields: [carId], references: [id])
+  carId    String   @db.ObjectId
+  price    Float    
+}
 
 model User {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
