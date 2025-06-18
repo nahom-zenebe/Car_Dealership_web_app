@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import toast, { Toaster } from 'react-hot-toast';
-import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car, Calendar, Wallet, BarChart2 } from 'lucide-react';
+import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car,ShoppingCart, Calendar, Wallet, BarChart2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateTo } from '@/app/Hook/useNavigateTo';
@@ -38,7 +38,7 @@ export default function UserDashboardLayout({
   const navItems = [
     { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
     { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: 'vechile' },
-    { icon: <Calendar className="h-5 w-5" />, label: 'Bookings', path: '/bookings' },
+    { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
   ];

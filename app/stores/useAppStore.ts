@@ -8,9 +8,9 @@ type User = {
   role: 'buyer' | 'seller';
 };
 
-// Car-related types
-export type Transmission = 'Automatic' | 'Manual' | 'CVT' | 'Semi-Automatic';
-export type FuelType = 'Petrol' | 'Diesel' | 'Electric' | 'Hybrid';
+// Car-related types - make sure these match everywhere
+export type Transmission = 'Automatic' | 'Manual' | 'SemiAutomatic';
+export type FuelType = 'Gasoline' | 'Diesel' | 'Electric' | 'Hybrid';
 
 type Car = {
   id: string;
