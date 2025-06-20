@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -41,7 +42,7 @@ import {
   History,
   User,
 } from "lucide-react";
-
+import { useAppStore,} from '@/app/stores/useAppStore';
 
 export default function UserProfile() {
   const [user, setUser] = useState({
@@ -58,7 +59,7 @@ export default function UserProfile() {
     memberSince: '',
     lastLogin: ''
   });
-  
+  const  uservalue = useAppStore((state) => state. user);
   const [editMode, setEditMode] = useState(false);
   const [tempUser, setTempUser] = useState({});
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
@@ -66,7 +67,14 @@ export default function UserProfile() {
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [serviceHistory, setServiceHistory] = useState([]);
   const [testDrives, setTestDrives] = useState([]);
+  const router = useRouter();
 
+
+  
+
+  
+  
+  
 
   
   const handleEditClick = () => {
@@ -118,15 +126,24 @@ export default function UserProfile() {
   };
 
   const handleDeleteAccount = async () => {
-    if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-      try {
-        await axios.delete(`/api/users/${user.id}`);
-        toast.success('Account deleted successfully');
-        navigate('/');
-      } catch (error) {
-        toast.error('Failed to delete account');
-        console.error(error);
+    try {
+      const res = await fetch('http://localhost:3000/api/auth/deleteAccount', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to delete user');
       }
+
+      const data = await res.json();
+     toast.success("Account deleted successfully")
+     router.push('/Signup');
+    } catch (err) {
+      console.error('Error deleting user:', err);
     }
   };
 
@@ -214,10 +231,13 @@ export default function UserProfile() {
               ) : (
                 <div className="text-center">
                   <h3 className="text-xl font-semibold">
-                    {user.firstName} {user.lastName}
+                   { uservalue?.name ?? "John Doe"} 
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Member since: {new Date(user.memberSince).toLocaleDateString()}
+                  { uservalue?.email ?? "JohnDoe@gmail.com"} 
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                  { uservalue?.role ?? "User"} 
                   </p>
                 </div>
               )}

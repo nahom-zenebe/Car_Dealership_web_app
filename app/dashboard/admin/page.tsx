@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
+
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -43,10 +44,48 @@ ChartJS.register(
 export default function AdminDashboard() {
   const [timeRange, setTimeRange] = useState('week');
   const [activeTab, setActiveTab] = useState('overview');
+  const [getalluser, setgetalluser] = useState(0);
+  const [getallposts, setgetallposts] = useState(0);
+
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/auth/Alluser');
+      if (!res.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await res.json();
+      setgetalluser(data.totalUsers);
+    } catch (err) {
+      console.error('Error fetching user count:', err);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/cars/getallposts');
+      if (!res.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await res.json();
+      setgetallposts(data.totalUsers);
+    } catch (err) {
+      console.error('Error fetching user count:', err);
+    }
+  };
+
+  fetchUsers();
+}, []);
 
   const stats = [
-    { id: 1, name: 'Total Users', value: '2,543', change: '+12%', changeType: 'increase', icon: FaUsers },
-    { id: 2, name: 'Total Posts', value: '1,287', change: '+5%', changeType: 'increase', icon: FaFileAlt },
+    { id: 1, name: 'Total Users', value:getalluser, change: '+12%', changeType: 'increase', icon: FaUsers },
+    { id: 2, name: 'Total Posts', value:getallposts, change: '+5%', changeType: 'increase', icon: FaFileAlt },
     { id: 3, name: 'Total Purchases', value: '893', change: '-3%', changeType: 'decrease', icon: FaShoppingCart },
     { id: 4, name: 'Total Revenue', value: '$48,256', change: '+18%', changeType: 'increase', icon: FaDollarSign },
   ];
