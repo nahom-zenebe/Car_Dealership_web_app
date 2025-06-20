@@ -72,6 +72,10 @@ model User {
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
   savedPaymentMethods   PaymentMethod[]
+ notifications          NotificationSettings?
+    theme         String     @default("system")
+  darkMode      Boolean    @default(false)
+    privacy       PrivacySettings?
 }
 
 model PaymentMethod {
@@ -87,7 +91,27 @@ model PaymentMethod {
   accountNumber  String?  // For bank transfers
   routingNumber  String?  // For bank transfers (US)
   createdAt      DateTime @default(now())
+
 }
+
+model  NotificationSettings {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  email      Boolean  @default(true)
+  push       Boolean  @default(true)
+  sms        Boolean  @default(false)
+  userId     String   @unique @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model PrivacySettings {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  publicProfile   Boolean  @default(true)
+  activityStatus  Boolean  @default(true)
+  dataCollection  Boolean  @default(false)
+  userId          String   @unique @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id])
+}
+
 enum PaymentType {
   CreditCard
   BankTransfer
