@@ -127,7 +127,7 @@ export default function UserProfile() {
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/deleteAccount', {
+      const res = await fetch(`http://localhost:3000/api/auth/deleteAccount/${uservalue.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

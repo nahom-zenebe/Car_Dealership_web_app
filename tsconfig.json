@@ -31,6 +31,6 @@
     ".next/types/**/*.ts",
     "app/dashboard/admin/createcar/page.js",
     "app/dashboard/user/UserAccountprofile/page.js"
-, "app/api/sales/route.js", "app/notificationpage/route.js"  ],
+, "app/api/sales/route.js", "app/dashboard/notificationpage/page.tsx"  ],
   "exclude": ["node_modules"]
 }

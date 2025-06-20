@@ -130,7 +130,7 @@ export default function UserDashboardLayout({
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigateTo('/settings')}>
+                <DropdownMenuItem onClick={() => navigateTo('/dashboard/settingpage')}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
@@ -224,7 +224,7 @@ export default function UserDashboardLayout({
                       <span className="absolute top-1 right-1 inline-flex h-2 w-2 bg-red-500 rounded-full" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent onClick={()=>router.push("/dashboard/notificationpage")}>
                     <p>Notifications</p>
                   </TooltipContent>
                 </Tooltip>
