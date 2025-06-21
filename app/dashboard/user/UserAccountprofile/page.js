@@ -1,7 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -41,60 +40,50 @@ import {
   Car,
   History,
   User,
+  Shield,
+  CreditCard,
 } from "lucide-react";
-import { useAppStore,} from '@/app/stores/useAppStore';
+import { useAppStore } from '@/app/stores/useAppStore';
 
 export default function UserProfile() {
-  const [user, setUser] = useState({
-    id: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    profilePhoto: '',
-    memberSince: '',
-    lastLogin: ''
-  });
-  const  uservalue = useAppStore((state) => state. user);
+  const uservalue = useAppStore((state) => state.user);
   const [editMode, setEditMode] = useState(false);
-  const [tempUser, setTempUser] = useState({});
+  const [tempUser, setTempUser] = useState({
+    name: uservalue?.name || '',
+    email: uservalue?.email || '',
+    phone: uservalue?.phone || '',
+    address: uservalue?.address || '',
+  });
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [purchaseHistory, setPurchaseHistory] = useState([]);
-  const [serviceHistory, setServiceHistory] = useState([]);
-  const [testDrives, setTestDrives] = useState([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-
-  
-
-  
-  
-  
-
-  
   const handleEditClick = () => {
+    setTempUser({
+      name: uservalue?.name || '',
+      email: uservalue?.email || '',
+      phone: uservalue?.phone || '',
+      address: uservalue?.address || '',
+    });
     setEditMode(true);
   };
 
   const handleCancelEdit = () => {
     setEditMode(false);
-    setTempUser(user);
   };
 
   const handleSave = async () => {
     try {
-      const response = await axios.put(`/api/users/${user.id}`, tempUser);
-      setUser(response.data);
+      setLoading(true);
+      const response = await axios.put(`/api/users/${uservalue.id}`, tempUser);
+      useAppStore.getState().setUser({ ...uservalue, ...response.data });
       setEditMode(false);
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error('Failed to update profile');
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,46 +97,72 @@ export default function UserProfile() {
     if (!file) return;
     
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append('photo', file);
       
-      const response = await axios.post(`/api/users/${user.id}/photo`, formData, {
+      const response = await axios.post(`/api/users/${uservalue.id}/photo`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      setUser(prev => ({ ...prev, profilePhoto: response.data.photoUrl }));
+      useAppStore.getState().setUser({ 
+        ...uservalue, 
+        profilePhotoUrl: response.data.photoUrl 
+      });
       toast.success('Profile photo updated');
     } catch (error) {
       toast.error('Failed to upload photo');
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/auth/deleteAccount/${uservalue.id}`, {
+      setLoading(true);
+      const res = await fetch(`/api/users/${uservalue.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-      
       });
 
       if (!res.ok) {
         throw new Error('Failed to delete user');
       }
 
-      const data = await res.json();
-     toast.success("Account deleted successfully")
-     router.push('/Signup');
+      toast.success("Account deleted successfully");
+      useAppStore.getState().logout();
+      router.push('/signup');
     } catch (err) {
       console.error('Error deleting user:', err);
+      toast.error('Failed to delete account');
+    } finally {
+      setLoading(false);
     }
   };
 
- 
+  const renderVerificationBadge = () => {
+    if (!uservalue?.verificationStatus) return null;
+    
+    const statusMap = {
+      pending: { color: 'bg-yellow-500', text: 'Verification Pending' },
+      approved: { color: 'bg-green-500', text: 'Verified' },
+      rejected: { color: 'bg-red-500', text: 'Verification Rejected' },
+    };
+
+    const status = statusMap[uservalue.verificationStatus];
+
+    return (
+      <span className={`${status.color} text-white text-xs px-2 py-1 rounded-full flex items-center gap-1`}>
+        <Shield className="h-3 w-3" />
+        {status.text}
+      </span>
+    );
+  };
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -159,18 +174,22 @@ export default function UserProfile() {
               <CardTitle>Profile</CardTitle>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" disabled={loading}>
                     <Settings className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setOpenPasswordDialog(true)}>
+                  <DropdownMenuItem 
+                    onClick={() => setOpenPasswordDialog(true)}
+                    disabled={loading}
+                  >
                     <Key className="mr-2 h-4 w-4" />
                     <span>Change Password</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="text-red-600"
                     onClick={handleDeleteAccount}
+                    disabled={loading}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     <span>Delete Account</span>
@@ -182,9 +201,9 @@ export default function UserProfile() {
             <CardContent className="flex flex-col items-center gap-4">
               <div className="relative">
                 <Avatar className="h-32 w-32">
-                  <AvatarImage src={user.profilePhoto || '/default-avatar.jpg'} />
+                  <AvatarImage src={uservalue?.profilePhotoUrl || '/default-avatar.jpg'} />
                   <AvatarFallback>
-                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                    {uservalue?.name?.split(' ').map(n => n[0]).join('') || 'US'}
                   </AvatarFallback>
                 </Avatar>
                 {editMode && (
@@ -195,11 +214,13 @@ export default function UserProfile() {
                       accept="image/*"
                       className="hidden"
                       onChange={handlePhotoUpload}
+                      disabled={loading}
                     />
                     <Button
                       variant="outline"
                       size="icon"
                       className="rounded-full h-10 w-10"
+                      disabled={loading}
                     >
                       <Camera className="h-4 w-4" />
                     </Button>
@@ -210,35 +231,28 @@ export default function UserProfile() {
               {editMode ? (
                 <div className="w-full space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="name">Full Name</Label>
                     <Input
-                      id="firstName"
-                      name="firstName"
-                      value={tempUser.firstName}
+                      id="name"
+                      name="name"
+                      value={tempUser.name}
                       onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={tempUser.lastName}
-                      onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
                   <h3 className="text-xl font-semibold">
-                   { uservalue?.name ?? "John Doe"} 
+                    {uservalue?.name || 'User'}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                  { uservalue?.email ?? "JohnDoe@gmail.com"} 
+                    {uservalue?.email || 'No email provided'}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                  { uservalue?.role ?? "User"} 
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {uservalue?.role || 'user'}
                   </p>
+                  {renderVerificationBadge()}
                 </div>
               )}
               
@@ -253,6 +267,7 @@ export default function UserProfile() {
                         type="email"
                         value={tempUser.email}
                         onChange={handleInputChange}
+                        disabled={loading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -262,6 +277,7 @@ export default function UserProfile() {
                         name="phone"
                         value={tempUser.phone}
                         onChange={handleInputChange}
+                        disabled={loading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -271,46 +287,25 @@ export default function UserProfile() {
                         name="address"
                         value={tempUser.address}
                         onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          name="city"
-                          value={tempUser.city}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <Input
-                          id="state"
-                          name="state"
-                          value={tempUser.state}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zipCode">Zip Code</Label>
-                      <Input
-                        id="zipCode"
-                        name="zipCode"
-                        value={tempUser.zipCode}
-                        onChange={handleInputChange}
+                        disabled={loading}
                       />
                     </div>
                     
                     <div className="flex justify-end gap-2 pt-2">
-                      <Button variant="outline" onClick={handleCancelEdit}>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCancelEdit}
+                        disabled={loading}
+                      >
                         <X className="mr-2 h-4 w-4" />
                         Cancel
                       </Button>
-                      <Button onClick={handleSave}>
+                      <Button 
+                        onClick={handleSave}
+                        disabled={loading}
+                      >
                         <Save className="mr-2 h-4 w-4" />
-                        Save
+                        {loading ? 'Saving...' : 'Save'}
                       </Button>
                     </div>
                   </>
@@ -318,13 +313,16 @@ export default function UserProfile() {
                   <>
                     <div className="space-y-1">
                       <p className="text-sm">
-                        <span className="font-medium">Email:</span> {user.email}
+                        <span className="font-medium">Email:</span> {uservalue?.email || 'Not provided'}
                       </p>
                       <p className="text-sm">
-                        <span className="font-medium">Phone:</span> {user.phone || 'Not provided'}
+                        <span className="font-medium">Phone:</span> {uservalue?.phone || 'Not provided'}
                       </p>
                       <p className="text-sm">
-                        <span className="font-medium">Address:</span> {user.address ? `${user.address}, ${user.city}, ${user.state} ${user.zipCode}` : 'Not provided'}
+                        <span className="font-medium">Address:</span> {uservalue?.address || 'Not provided'}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Member since:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>
                     
@@ -332,6 +330,7 @@ export default function UserProfile() {
                       variant="outline"
                       className="w-full"
                       onClick={handleEditClick}
+                      disabled={loading}
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Edit Profile
@@ -360,13 +359,13 @@ export default function UserProfile() {
                     <Car className="mr-2 h-4 w-4" />
                     Purchases
                   </TabsTrigger>
-                  <TabsTrigger value="services">
-                    <History className="mr-2 h-4 w-4" />
-                    Services
+                  <TabsTrigger value="payments">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Payments
                   </TabsTrigger>
-                  <TabsTrigger value="test-drives">
-                    <Car className="mr-2 h-4 w-4" />
-                    Test Drives
+                  <TabsTrigger value="verification">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Verification
                   </TabsTrigger>
                 </TabsList>
                 
@@ -374,63 +373,71 @@ export default function UserProfile() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Account Summary</h3>
                     <p className="text-sm text-muted-foreground">
-                      Welcome back to your account dashboard. Here you can manage your personal information, 
-                      view your vehicle purchase history, and track service appointments.
+                      Welcome back to your account dashboard. Here you can manage your personal information.
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Last login:</span> {new Date(user.lastLogin).toLocaleString()}
+                      <span className="font-medium">Account created:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleString() : 'N/A'}
                     </p>
-                    
-                    <h3 className="text-lg font-semibold pt-4">Quick Stats</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{purchaseHistory.length}</p>
-                          <p className="text-sm text-muted-foreground">Vehicles Purchased</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{serviceHistory.length}</p>
-                          <p className="text-sm text-muted-foreground">Service Visits</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{testDrives.length}</p>
-                          <p className="text-sm text-muted-foreground">Test Drives</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">
-                            {purchaseHistory.filter(p => p.warrantyActive).length}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Active Warranties</p>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Last updated:</span> {uservalue?.updatedAt ? new Date(uservalue.updatedAt).toLocaleString() : 'N/A'}
+                    </p>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="purchases" className="pt-4">
-                 
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Your Purchases</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {uservalue?.purchases?.length ? 'Your purchase history will appear here' : 'No purchases yet'}
+                    </p>
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="services" className="pt-4">
-                 
+                <TabsContent value="payments" className="pt-4">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Payment Methods</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {uservalue?.savedPaymentMethods?.length ? 'Your saved payment methods will appear here' : 'No saved payment methods'}
+                    </p>
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="test-drives" className="pt-4">
-                 
+                <TabsContent value="verification" className="pt-4">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Account Verification</h3>
+                    {uservalue?.verificationStatus === 'approved' ? (
+                      <div className="bg-green-50 text-green-800 p-4 rounded-md">
+                        <p>Your account has been verified.</p>
+                        {uservalue.verifiedAt && (
+                          <p className="text-sm">Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}</p>
+                        )}
+                      </div>
+                    ) : uservalue?.verificationStatus === 'pending' ? (
+                      <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md">
+                        <p>Your verification is pending review.</p>
+                      </div>
+                    ) : uservalue?.verificationStatus === 'rejected' ? (
+                      <div className="bg-red-50 text-red-800 p-4 rounded-md">
+                        <p>Your verification was rejected.</p>
+                        {uservalue.verificationComments && (
+                          <p className="text-sm">Reason: {uservalue.verificationComments}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
+                        <p>Your account is not yet verified.</p>
+                        <Button onClick={()=>router.push('/dashboard/Verificationpage')} className="mt-2" size="sm">
+                          Start Verification
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
         </div>
       </div>
-      
-      
     </div>
   );
 }
