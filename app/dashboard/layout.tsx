@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
+import { FaRegHeart } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
 import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car,ShoppingCart, Calendar, Wallet, BarChart2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ export default function UserDashboardLayout({
     { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
     { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: 'vechile' },
     { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
+    { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
   ];

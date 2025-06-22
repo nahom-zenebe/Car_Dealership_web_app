@@ -2,13 +2,16 @@ import { NextRequest, NextResponse} from 'next/server';
 import {  PrismaClient } from '@/app/generated/prisma';
 
 import { uploadToCloudinary } from '@/app/lib/cloundinary';
-
+import { requireAdmin } from '@/app/lib/session';
 const prisma = new PrismaClient();
 
 
-export async function  GET(req: NextRequest){
+export async function  GET(request: NextRequest){
     try{
       
+
+        await requireAdmin(request);
+
         const pendingVerifications=await prisma.user.findMany({
             where:{
                 verificationStatus:'pending',

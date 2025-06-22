@@ -30,8 +30,8 @@ export async function getSession(){
 }
 export async function requireAdmin(request?: Request) {
     const session = await getSession();
-    if (!session?.user || session.user.role !== 'admin') {
-      throw new Error('Admin access required');
+    if (!session?.user || session.user.role !== 'seller') {
+      throw new Error('seller access required');
     }
     return session;
   }
