@@ -289,10 +289,10 @@ export default function CheckoutPage() {
                         <div key={item.id} className="flex justify-between">
                           <div className="flex items-center">
                             <div className="w-12 h-12 bg-gray-200 rounded-md mr-3 overflow-hidden">
-                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                             
                             </div>
                             <div>
-                              <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
+                        
                               <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                             </div>
                           </div>
@@ -344,10 +344,10 @@ export default function CheckoutPage() {
                     <div key={item.id} className="flex justify-between">
                       <div className="flex items-center">
                         <div className="w-12 h-12 bg-gray-200 rounded-md mr-3 overflow-hidden">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                         
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
+                   
                           <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                         </div>
                       </div>

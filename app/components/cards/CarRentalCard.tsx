@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from 'framer-motion';
-
+import { useFavoriteStore } from '@/app/stores/useAppStore';
+import { Car } from 'lucide-react';
 export default function CarRentalCard({
   id,
   make,
@@ -46,8 +47,10 @@ export default function CarRentalCard({
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+ 
   const addToCart = useCartStore((state) => state.addToCart);
+  const { toggleFavorite, isFavorite } = useFavoriteStore();
+  const favorited = isFavorite(id);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
@@ -98,11 +101,7 @@ export default function CarRentalCard({
     toast.success(`${make} ${model} added to cart`);
   };
 
-  const toggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Removed from wishlist' : 'Added to wishlist');
-  };
+  
 
   const handleAddToCompare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -170,17 +169,17 @@ export default function CarRentalCard({
         </div>
 
         {/* Favorite Button */}
-        <button
-          onClick={toggleFavorite}
-          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-          aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          {isFavorite ? (
-            <FaHeart className="text-red-500" />
-          ) : (
-            <FaRegHeart className="text-gray-700" />
-          )}
-        </button>
+       <button
+      onClick={() => toggleFavorite(car)}
+      className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+      aria-label={favorited ? "Remove from wishlist" : "Add to wishlist"}
+    >
+      {favorited ? (
+        <FaHeart className="text-red-500" />
+      ) : (
+        <FaRegHeart className="text-gray-700" />
+      )}
+    </button>
 
         {/* Image Counter */}
         {!isLoading && imageUrls.length > 1 && (

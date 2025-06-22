@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import toast, { Toaster } from 'react-hot-toast';
+import { useAppStore } from '@/app/stores/useAppStore';
+import { useRouter } from 'next/navigation';
 
 
 export default function SettingsPage() {
@@ -16,6 +19,14 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const uservalue = useAppStore((state) => state.user);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -47,6 +58,109 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/auth/${uservalue?.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword 
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to update password");
+      } else {
+        toast.success("Password updated successfully");
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/auth/${uservalue?.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to delete account");
+      } else {
+        toast.success("Account deleted successfully");
+   
+        router.push('/');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    if (!confirm("Are you sure you want to deactivate your account? You can reactivate it later by logging in.")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/auth/${uservalue?.id}/deactivate`, {
+        method: 'PATCH',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to deactivate account");
+      } else {
+        toast.success("Account deactivated successfully");
+      
+        router.push('/');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -54,6 +168,7 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Toaster position="top-right" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:w-1/2">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -263,23 +378,49 @@ export default function SettingsPage() {
               <CardDescription>Manage your account settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-              <div className="flex justify-end">
-                <Button variant="destructive">Change Password</Button>
-              </div>
-
-        
+              <form onSubmit={handlePasswordSubmit}>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input 
+                      id="currentPassword" 
+                      name="currentPassword" 
+                      type="password" 
+                      value={passwordForm.currentPassword}
+                      onChange={handlePasswordChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input 
+                      id="newPassword" 
+                      name="newPassword" 
+                      type="password" 
+                      value={passwordForm.newPassword}
+                      onChange={handlePasswordChange}
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input 
+                      id="confirmPassword" 
+                      name="confirmPassword" 
+                      type="password" 
+                      value={passwordForm.confirmPassword}
+                      onChange={handlePasswordChange}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Updating..." : "Change Password"}
+                    </Button>
+                  </div>
+                </div>
+              </form>
 
               <div>
                 <Label>Danger Zone</Label>
@@ -287,13 +428,23 @@ export default function SettingsPage() {
                   These actions are irreversible
                 </p>
                 <div className="space-y-4">
-                  <Button variant="outline" className="w-full justify-between">
-                    <span>Delete Account</span>
-                    <span className="text-red-500">Permanent</span>
-                  </Button>
-                  <Button variant="outline" className="w-full justify-between">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between"
+                    onClick={handleDeactivateAccount}
+                    disabled={loading}
+                  >
                     <span>Deactivate Account</span>
                     <span className="text-orange-500">Temporary</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between"
+                    onClick={handleDeleteAccount}
+                    disabled={loading}
+                  >
+                    <span>Delete Account</span>
+                    <span className="text-red-500">Permanent</span>
                   </Button>
                 </div>
               </div>
