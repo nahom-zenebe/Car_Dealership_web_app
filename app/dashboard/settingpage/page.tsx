@@ -28,9 +28,9 @@ export default function SettingsPage() {
   const uservalue = useAppStore((state) => state.user);
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    bio: "Frontend developer passionate about UI/UX",
+    name: uservalue?.name,
+    email: uservalue?.email,
+    bio: uservalue?.phone,
     location: "San Francisco, CA",
     website: "https://johndoe.dev"
   });

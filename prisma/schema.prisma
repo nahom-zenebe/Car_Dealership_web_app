@@ -72,7 +72,7 @@ model User {
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
   savedPaymentMethods   PaymentMethod[]
- notifications          NotificationSettings?
+messages  Message[]  @relation("UserMessages")
     theme         String     @default("system")
   darkMode      Boolean    @default(false)
     privacy       PrivacySettings?
@@ -94,14 +94,16 @@ model PaymentMethod {
 
 }
 
-model  NotificationSettings {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  email      Boolean  @default(true)
-  push       Boolean  @default(true)
-  sms        Boolean  @default(false)
-  userId     String   @unique @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-}
+model Message {
+   id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  sender     String   
+  receiver   String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation("UserMessages", fields: [receiver], references: [id])
+  }
 
 model PrivacySettings {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
