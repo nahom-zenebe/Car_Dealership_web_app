@@ -75,7 +75,13 @@ export default function UserProfile() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const response = await axios.put(`/api/users/${uservalue.id}`, tempUser);
+      const response = await axios.put(`/api/users/${uservalue.id}`, {
+        name: tempUser.name,
+        email: tempUser.email,
+        // Only include phone and address if they exist
+        ...(tempUser.phone && { phone: tempUser.phone }),
+        ...(tempUser.address && { address: tempUser.address }),
+      });
       useAppStore.getState().setUser({ ...uservalue, ...response.data });
       setEditMode(false);
       toast.success('Profile updated successfully');
@@ -115,31 +121,6 @@ export default function UserProfile() {
     } catch (error) {
       toast.error('Failed to upload photo');
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/users/${uservalue.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to delete user');
-      }
-
-      toast.success("Account deleted successfully");
-      useAppStore.getState().logout();
-      router.push('/signup');
-    } catch (err) {
-      console.error('Error deleting user:', err);
-      toast.error('Failed to delete account');
     } finally {
       setLoading(false);
     }
@@ -186,14 +167,6 @@ export default function UserProfile() {
                     <Key className="mr-2 h-4 w-4" />
                     <span>Change Password</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={handleDeleteAccount}
-                    disabled={loading}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Delete Account</span>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </CardHeader>
@@ -231,18 +204,71 @@ export default function UserProfile() {
               {editMode ? (
                 <div className="w-full space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">Full Name *</Label>
                     <Input
                       id="name"
                       name="name"
                       value={tempUser.name}
                       onChange={handleInputChange}
                       disabled={loading}
+                      required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={tempUser.email}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone (Optional)</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={tempUser.phone}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      placeholder="Add your phone number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address (Optional)</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      value={tempUser.address}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      placeholder="Add your address"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCancelEdit}
+                      disabled={loading}
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSave}
+                      disabled={loading || !tempUser.name || !tempUser.email}
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {loading ? 'Saving...' : 'Save'}
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <div className="text-center">
+                <div className="text-center w-full">
                   <h3 className="text-xl font-semibold">
                     {uservalue?.name || 'User'}
                   </h3>
@@ -253,91 +279,30 @@ export default function UserProfile() {
                     {uservalue?.role || 'user'}
                   </p>
                   {renderVerificationBadge()}
+                  
+                  <div className="w-full border-t pt-4 mt-4 space-y-2 text-left">
+                    <p className="text-sm">
+                      <span className="font-medium">Phone:</span> {uservalue?.phone || 'Not provided'}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Address:</span> {uservalue?.address || 'Not provided'}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Member since:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={handleEditClick}
+                    disabled={loading}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 </div>
               )}
-              
-              <div className="w-full border-t pt-4 space-y-4">
-                {editMode ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={tempUser.email}
-                        onChange={handleInputChange}
-                        disabled={loading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={tempUser.phone}
-                        onChange={handleInputChange}
-                        disabled={loading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input
-                        id="address"
-                        name="address"
-                        value={tempUser.address}
-                        onChange={handleInputChange}
-                        disabled={loading}
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        onClick={handleCancelEdit}
-                        disabled={loading}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={handleSave}
-                        disabled={loading}
-                      >
-                        <Save className="mr-2 h-4 w-4" />
-                        {loading ? 'Saving...' : 'Save'}
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="space-y-1">
-                      <p className="text-sm">
-                        <span className="font-medium">Email:</span> {uservalue?.email || 'Not provided'}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Phone:</span> {uservalue?.phone || 'Not provided'}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Address:</span> {uservalue?.address || 'Not provided'}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Member since:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleEditClick}
-                      disabled={loading}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit Profile
-                    </Button>
-                  </>
-                )}
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -371,16 +336,27 @@ export default function UserProfile() {
                 
                 <TabsContent value="profile" className="pt-4">
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Account Summary</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Welcome back to your account dashboard. Here you can manage your personal information.
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Account created:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleString() : 'N/A'}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Last updated:</span> {uservalue?.updatedAt ? new Date(uservalue.updatedAt).toLocaleString() : 'N/A'}
-                    </p>
+                    <h3 className="text-lg font-semibold">Account Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Full Name</p>
+                        <p className="text-sm">{uservalue?.name || 'Not provided'}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm">{uservalue?.email || 'Not provided'}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Account Type</p>
+                        <p className="text-sm capitalize">{uservalue?.role || 'user'}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Verification Status</p>
+                        <div className="text-sm">
+                          {renderVerificationBadge()}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
                 
@@ -426,7 +402,11 @@ export default function UserProfile() {
                     ) : (
                       <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
                         <p>Your account is not yet verified.</p>
-                        <Button onClick={()=>router.push('/dashboard/Verificationpage')} className="mt-2" size="sm">
+                        <Button 
+                          onClick={() => router.push('/dashboard/verification')} 
+                          className="mt-2" 
+                          size="sm"
+                        >
                           Start Verification
                         </Button>
                       </div>

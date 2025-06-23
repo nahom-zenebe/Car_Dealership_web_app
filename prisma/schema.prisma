@@ -72,7 +72,6 @@ model User {
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
   savedPaymentMethods   PaymentMethod[]
-messages  Message[]  @relation("UserMessages")
     theme         String     @default("system")
   darkMode      Boolean    @default(false)
     privacy       PrivacySettings?
@@ -94,16 +93,7 @@ model PaymentMethod {
 
 }
 
-model Message {
-   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  content    String
-  sender     String   
-  receiver   String
-  read       Boolean  @default(false)
-  createdAt  DateTime @default(now())
 
-  user       User     @relation("UserMessages", fields: [receiver], references: [id])
-  }
 
 model PrivacySettings {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
