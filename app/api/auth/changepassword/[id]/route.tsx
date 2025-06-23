@@ -7,8 +7,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+import {  PrismaClient } from '../../../../generated/prisma';
 
-export async function UPDATE(
+
+const prisma = new PrismaClient();
+export async function  PATCH(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
@@ -19,6 +22,11 @@ export async function UPDATE(
     if (!id || !password) {
       return NextResponse.json({ error: 'User ID and password are required' }, { status: 400 });
     }
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+if (!existingUser) {
+  return NextResponse.json({ error: 'User not found' }, { status: 404 });
+}
+
 
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -27,13 +35,14 @@ export async function UPDATE(
     const user = await prisma.user.update({
       where: { id },
       data: {
-        password: hashedPassword,
+        passwordHash: hashedPassword,
       },
     });
 
     return NextResponse.json({ message: 'Password updated successfully' });
-  } catch (err) {
-    console.error('Error updating password:', err);
+  }  catch (err: any) {
+    console.error('Error updating password:', err.message, err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  
 }

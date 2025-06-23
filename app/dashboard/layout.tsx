@@ -55,7 +55,7 @@ export default function UserDashboardLayout({
       }
   
       toast.success("Logout successful");
-      router.push('/dashboard/user');
+      router.push('/Signup');
     } catch (err) {
       console.error('Logout error:', err);
       alert('Failed to logout. Please try again.');

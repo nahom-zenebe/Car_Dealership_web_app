@@ -5,6 +5,9 @@ import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
 
+import {  PrismaClient } from '../../../../generated/prisma';
+const prisma = new PrismaClient();
+
 
 export async function DELETE(req:NextRequest,context: { params: { id: string } }) {
     try{
