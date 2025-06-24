@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import toast, { Toaster } from 'react-hot-toast';
 import { useAppStore } from '@/app/stores/useAppStore';
 import { useRouter } from 'next/navigation';
+import { useTheme } from "next-themes";
 import {
   Dialog,
   DialogContent,
@@ -36,13 +37,13 @@ export default function SettingsPage() {
   const uservalue = useAppStore((state) => state.user);
   const router = useRouter();
 
+  const { setTheme, theme } = useTheme();
   const themes = [
     { value: "light", label: "Light" },
     { value: "dark", label: "Dark" },
     { value: "system", label: "System" },
-    { value: "blue", label: "Blue" },
-    { value: "green", label: "Green" },
   ];
+  
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -212,18 +213,20 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label>Theme</Label>
-                <Select defaultValue="system">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {themes.map((theme) => (
-                      <SelectItem key={theme.value} value={theme.value}>
-                        {theme.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Select onValueChange={setTheme} defaultValue={theme}>
+  <SelectTrigger className="w-[180px]">
+    <SelectValue placeholder="Select theme" />
+  </SelectTrigger>
+  <SelectContent>
+    {themes.map((theme) => (
+      <SelectItem key={theme.value} value={theme.value}>
+        {theme.label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+           
               </div>
 
               <div className="flex items-center justify-between rounded-lg border p-4">
