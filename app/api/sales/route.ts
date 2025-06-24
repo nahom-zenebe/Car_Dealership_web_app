@@ -27,7 +27,7 @@ const saleSchema = z.object({
   saveInfo: z.boolean().optional(),
 });
 
-export async function POST(request) {
+export async function POST(request:Request) {
   try {
     const body = await request.json();
     const validatedData = saleSchema.parse(body);
@@ -98,7 +98,7 @@ export async function POST(request) {
               saleId: newSale.id,
               carId: item.carId,
               price: item.price,
-              quantity: item.quantity,
+       
             }
           })
         )
@@ -130,7 +130,7 @@ export async function POST(request) {
   }
 }
 
-export async function GET(request) {
+export async function GET(request:Request) {
   try {
     const { searchParams } = new URL(request.url);
     const buyerId = searchParams.get('buyerId');
