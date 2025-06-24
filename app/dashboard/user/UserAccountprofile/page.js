@@ -60,7 +60,7 @@ export default function UserProfile() {
   const [tempUser, setTempUser] = useState({
     name: uservalue?.name || '',
     email: uservalue?.email || '',
-    phone: uservalue?.phone.toString || '',
+    phone: uservalue?.phone || '',
     address: uservalue?.address || '',
   });
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
@@ -71,7 +71,7 @@ export default function UserProfile() {
     setTempUser({
       name: uservalue?.name || '',
       email: uservalue?.email || '',
-      phone: uservalue?.phone.toString || '',
+      phone: uservalue?.phone|| '',
       address: uservalue?.address || '',
     });
     setEditMode(true);
@@ -84,38 +84,43 @@ export default function UserProfile() {
 
 
 
-
   const handleSave = async () => {
     try {
       setLoading(true);
   
-      const res = await fetch(`/api/auth/${uservalue.id}/updateinfo`, {
+      const res = await fetch(`/api/user/${uservalue.id}/updateinfo`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: tempUser.name,
           email: tempUser.email,
-          ...(tempUser.phone && { phone: tempUser.phone }),
-          ...(tempUser.address && { address: tempUser.address }),
+          phone: tempUser.phone,
+          address: tempUser.address,
         }),
       });
   
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+  
       const data = await res.json();
-  
-      if (!res.ok) throw new Error(data.message || 'Failed to update');
-  
-      useAppStore.getState().setUser({ ...uservalue, ...data });
+      
+      
+      useAppStore.setState((state) => ({
+        user: { ...state.user, ...data }
+      }));
+      
       setEditMode(false);
       toast.success('Profile updated successfully');
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error(error.message || 'Failed to update profile');
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+  
   
 
   const handleInputChange = (e) => {
@@ -132,7 +137,7 @@ export default function UserProfile() {
       const formData = new FormData();
       formData.append('photo', file);
       
-      const response = await axios.post(`/api/users/${uservalue.id}/photo`, formData, {
+      const response = await axios.post(`/api/user/${uservalue.id}/photo`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
