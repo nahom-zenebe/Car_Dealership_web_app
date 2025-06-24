@@ -41,6 +41,9 @@ model Sale {
   deliveryAddress String
   deliveryDate    DateTime?
   items           SaleItem[]  
+  paymentStatus PaymentStatus @default(pending)
+  paymentIntentId String? // For Stripe/other processors
+  failureReason String?
 }
 
 model SaleItem {
@@ -71,7 +74,6 @@ model User {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
-  isActive  Boolean  @default(true)
   savedPaymentMethods   PaymentMethod[]
     theme         String     @default("system")
   darkMode      Boolean    @default(false)
@@ -111,6 +113,13 @@ enum PaymentType {
   Financing
 }
 
+enum PaymentStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
+}
 enum SaleStatus {
   pending
   completed

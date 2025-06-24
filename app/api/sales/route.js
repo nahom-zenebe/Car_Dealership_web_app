@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '../../generated/prisma';
 import { z } from 'zod';
-
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const prisma = new PrismaClient();
 
 
@@ -82,6 +83,47 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const validatedData = saleSchema.parse(body);
+
+
+    // Add to your POST /api/sales handler:
+
+
+// Inside your transaction:
+if (validatedData.paymentType === 'CreditCard') {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(total * 100), // in cents
+      currency: 'usd',
+      metadata: { saleId: newSale.id },
+      // ... other payment details
+    });
+    
+    await tx.sale.update({
+      where: { id: newSale.id },
+      data: { 
+        paymentIntentId: paymentIntent.id,
+        paymentStatus: 'processing'
+      }
+    });
+    
+    // Return client secret to frontend
+    return NextResponse.json({ 
+      ...newSale,
+      clientSecret: paymentIntent.client_secret 
+    }, { status: 201 });
+    
+  } catch (error) {
+    // Handle Stripe errors
+    await tx.sale.update({
+      where: { id: newSale.id },
+      data: { 
+        paymentStatus: 'failed',
+        failureReason: error.message
+      }
+    });
+    throw error;
+  }
+}
 
     // Fetch all cars involved in the sale to validate and enrich data
     const carIds = validatedData.items.map(item => item.carId);
