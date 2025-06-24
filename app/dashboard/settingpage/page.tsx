@@ -11,16 +11,28 @@ import { Label } from "@/components/ui/label";
 import toast, { Toaster } from 'react-hot-toast';
 import { useAppStore } from '@/app/stores/useAppStore';
 import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("appearance");
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+
   const uservalue = useAppStore((state) => state.user);
   const router = useRouter();
 
@@ -53,9 +65,7 @@ export default function SettingsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-       // FIX HERE in your handlePasswordSubmit
-body: JSON.stringify({ password: passwordForm.newPassword })
-
+        body: JSON.stringify({ password: passwordForm.newPassword })
       });
 
       const data = await res.json();
@@ -69,7 +79,6 @@ body: JSON.stringify({ password: passwordForm.newPassword })
           newPassword: '',
           confirmPassword: ''
         });
-    
       }
     } catch (err) {
       console.error(err);
@@ -80,10 +89,6 @@ body: JSON.stringify({ password: passwordForm.newPassword })
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch(`/api/auth/deleteAccount/${uservalue?.id}`, {
@@ -102,15 +107,12 @@ body: JSON.stringify({ password: passwordForm.newPassword })
       console.error(err);
       toast.error("Something went wrong.");
     } finally {
+      setIsDeleteDialogOpen(false);
       setLoading(false);
     }
   };
 
   const handleDeactivateAccount = async () => {
-    if (!confirm("Are you sure you want to deactivate your account? You can reactivate it later by logging in.")) {
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch(`/api/auth/${uservalue?.id}/deactivate`, {
@@ -129,6 +131,7 @@ body: JSON.stringify({ password: passwordForm.newPassword })
       console.error(err);
       toast.error("Something went wrong.");
     } finally {
+      setIsDeactivateDialogOpen(false);
       setLoading(false);
     }
   };
@@ -136,13 +139,70 @@ body: JSON.stringify({ password: passwordForm.newPassword })
   return (
     <div className="container mx-auto py-8">
       <Toaster position="top-right" />
+
+      {/* Delete Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account
+              and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={loading}
+            >
+              {loading ? "Deleting..." : "Delete Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Deactivate Dialog */}
+      <Dialog open={isDeactivateDialogOpen} onOpenChange={setIsDeactivateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate your account?</DialogTitle>
+            <DialogDescription>
+              Your account will be temporarily deactivated. You can reactivate it by logging in again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeactivateDialogOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeactivateAccount}
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Deactivate Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-1/3">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
 
-        {/* Appearance Tab */}
+        {/* Appearance */}
         <TabsContent value="appearance">
           <Card>
             <CardHeader>
@@ -169,7 +229,7 @@ body: JSON.stringify({ password: passwordForm.newPassword })
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Toggle between light and dark mode
                   </p>
                 </div>
@@ -183,7 +243,7 @@ body: JSON.stringify({ password: passwordForm.newPassword })
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <Label htmlFor="compact-mode">Compact Mode</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Use more compact spacing
                   </p>
                 </div>
@@ -193,7 +253,7 @@ body: JSON.stringify({ password: passwordForm.newPassword })
           </Card>
         </TabsContent>
 
-        {/* Account Tab */}
+        {/* Account */}
         <TabsContent value="account">
           <Card>
             <CardHeader>
@@ -205,10 +265,10 @@ body: JSON.stringify({ password: passwordForm.newPassword })
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input 
-                      id="currentPassword" 
-                      name="currentPassword" 
-                      type="password" 
+                    <Input
+                      id="currentPassword"
+                      name="currentPassword"
+                      type="password"
                       value={passwordForm.currentPassword}
                       onChange={handlePasswordChange}
                       required
@@ -216,10 +276,10 @@ body: JSON.stringify({ password: passwordForm.newPassword })
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input 
-                      id="newPassword" 
-                      name="newPassword" 
-                      type="password" 
+                    <Input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
                       value={passwordForm.newPassword}
                       onChange={handlePasswordChange}
                       required
@@ -228,10 +288,10 @@ body: JSON.stringify({ password: passwordForm.newPassword })
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input 
-                      id="confirmPassword" 
-                      name="confirmPassword" 
-                      type="password" 
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
                       value={passwordForm.confirmPassword}
                       onChange={handlePasswordChange}
                       required
@@ -251,19 +311,19 @@ body: JSON.stringify({ password: passwordForm.newPassword })
                   These actions are irreversible
                 </p>
                 <div className="space-y-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full justify-between"
-                    onClick={handleDeactivateAccount}
+                    onClick={() => setIsDeactivateDialogOpen(true)}
                     disabled={loading}
                   >
                     <span>Deactivate Account</span>
                     <span className="text-orange-500">Temporary</span>
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full justify-between"
-                    onClick={handleDeleteAccount}
+                    onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={loading}
                   >
                     <span>Delete Account</span>
