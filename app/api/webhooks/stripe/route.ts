@@ -1,4 +1,8 @@
-// Add new route /api/webhooks/stripe
+import { NextResponse } from 'next/server';
+
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
 export async function POST(request: Request) {
     const sig = request.headers.get('stripe-signature')!;
     const body = await request.text();
@@ -11,8 +15,8 @@ export async function POST(request: Request) {
         sig,
         process.env.STRIPE_WEBHOOK_SECRET!
       );
-    } catch (err) {
-      return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    } catch (error) {
+      return NextResponse.json({ error: `Webhook Error` }, { status: 400 });
     }
   
     switch (event.type) {
