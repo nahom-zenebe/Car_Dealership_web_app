@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -38,12 +39,20 @@ import {
   X,
   Camera,
   Car,
-  History,
-  User,
-  Shield,
   CreditCard,
+  Shield,
+  Clock,
+  CheckCircle,
+  XCircle,
+  User,
+  History,
 } from "lucide-react";
 import { useAppStore } from '@/app/stores/useAppStore';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function UserProfile() {
   const uservalue = useAppStore((state) => state.user);
@@ -51,7 +60,7 @@ export default function UserProfile() {
   const [tempUser, setTempUser] = useState({
     name: uservalue?.name || '',
     email: uservalue?.email || '',
-    phone: uservalue?.phone || '',
+    phone: uservalue?.phone.toString || '',
     address: uservalue?.address || '',
   });
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
@@ -62,7 +71,7 @@ export default function UserProfile() {
     setTempUser({
       name: uservalue?.name || '',
       email: uservalue?.email || '',
-      phone: uservalue?.phone || '',
+      phone: uservalue?.phone.toString || '',
       address: uservalue?.address || '',
     });
     setEditMode(true);
@@ -72,17 +81,32 @@ export default function UserProfile() {
     setEditMode(false);
   };
 
+
+
+
+
   const handleSave = async () => {
     try {
       setLoading(true);
-      const response = await axios.put(`/api/users/${uservalue.id}`, {
-        name: tempUser.name,
-        email: tempUser.email,
-        // Only include phone and address if they exist
-        ...(tempUser.phone && { phone: tempUser.phone }),
-        ...(tempUser.address && { address: tempUser.address }),
+  
+      const res = await fetch(`/api/auth/${uservalue.id}/updateinfo`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: tempUser.name,
+          email: tempUser.email,
+          ...(tempUser.phone && { phone: tempUser.phone }),
+          ...(tempUser.address && { address: tempUser.address }),
+        }),
       });
-      useAppStore.getState().setUser({ ...uservalue, ...response.data });
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.message || 'Failed to update');
+  
+      useAppStore.getState().setUser({ ...uservalue, ...data });
       setEditMode(false);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -92,6 +116,7 @@ export default function UserProfile() {
       setLoading(false);
     }
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -127,21 +152,51 @@ export default function UserProfile() {
   };
 
   const renderVerificationBadge = () => {
-    if (!uservalue?.verificationStatus) return null;
+    if (!uservalue?.verificationStatus) {
+      return (
+        <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+          <Shield className="h-3 w-3" />
+          Not Verified
+        </span>
+      );
+    }
     
     const statusMap = {
-      pending: { color: 'bg-yellow-500', text: 'Verification Pending' },
-      approved: { color: 'bg-green-500', text: 'Verified' },
-      rejected: { color: 'bg-red-500', text: 'Verification Rejected' },
+      pending: { 
+        color: 'bg-yellow-100 text-yellow-800', 
+        text: 'Verification Pending',
+        icon: <Clock className="h-3 w-3" /> 
+      },
+      approved: { 
+        color: 'bg-green-100 text-green-800', 
+        text: 'Verified',
+        icon: <CheckCircle className="h-3 w-3" /> 
+      },
+      rejected: { 
+        color: 'bg-red-100 text-red-800', 
+        text: 'Verification Rejected',
+        icon: <XCircle className="h-3 w-3" /> 
+      },
     };
 
     const status = statusMap[uservalue.verificationStatus];
 
     return (
-      <span className={`${status.color} text-white text-xs px-2 py-1 rounded-full flex items-center gap-1`}>
-        <Shield className="h-3 w-3" />
-        {status.text}
-      </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={`${status.color} text-xs px-2 py-1 rounded-full flex items-center gap-1`}>
+            {status.icon}
+            {status.text}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {uservalue.verificationStatus === 'approved'
+            ? "Your account has been fully verified"
+            : uservalue.verificationStatus === 'pending'
+            ? "Your documents are under review"
+            : "Please update your documents to complete verification"}
+        </TooltipContent>
+      </Tooltip>
     );
   };
 
@@ -278,7 +333,9 @@ export default function UserProfile() {
                   <p className="text-sm text-muted-foreground capitalize">
                     {uservalue?.role || 'user'}
                   </p>
-                  {renderVerificationBadge()}
+                  <div className="my-2">
+                    {renderVerificationBadge()}
+                  </div>
                   
                   <div className="w-full border-t pt-4 mt-4 space-y-2 text-left">
                     <p className="text-sm">
@@ -352,9 +409,24 @@ export default function UserProfile() {
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Verification Status</p>
-                        <div className="text-sm">
+                        <div className="flex items-center gap-2">
                           {renderVerificationBadge()}
+                          {uservalue?.verificationStatus !== 'approved' && (
+                            <Button 
+                              variant="link" 
+                              size="sm" 
+                              className="h-6 p-0 text-sm"
+                              onClick={() => router.push('/dashboard/verification')}
+                            >
+                              {uservalue?.verificationStatus ? 'Update' : 'Verify'}
+                            </Button>
+                          )}
                         </div>
+                        {uservalue?.verifiedAt && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -383,28 +455,62 @@ export default function UserProfile() {
                     <h3 className="text-lg font-semibold">Account Verification</h3>
                     {uservalue?.verificationStatus === 'approved' ? (
                       <div className="bg-green-50 text-green-800 p-4 rounded-md">
-                        <p>Your account has been verified.</p>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5" />
+                          <p>Your account has been verified.</p>
+                        </div>
                         {uservalue.verifiedAt && (
-                          <p className="text-sm">Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}</p>
+                          <p className="text-sm mt-2">Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}</p>
                         )}
                       </div>
                     ) : uservalue?.verificationStatus === 'pending' ? (
                       <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md">
-                        <p>Your verification is pending review.</p>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-5 w-5" />
+                          <p>Your verification is pending review.</p>
+                        </div>
+                        <div className="mt-4 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-2 w-2 rounded-full ${uservalue.documentsSubmitted ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                            <span className="text-sm">Document submission</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className={`h-2 w-2 rounded-full ${uservalue.verificationStatus === 'pending' ? 'bg-yellow-500' : 'bg-gray-300'}`}></div>
+                            <span className="text-sm">Under review</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+                            <span className="text-sm">Verification complete</span>
+                          </div>
+                        </div>
                       </div>
                     ) : uservalue?.verificationStatus === 'rejected' ? (
                       <div className="bg-red-50 text-red-800 p-4 rounded-md">
-                        <p>Your verification was rejected.</p>
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-5 w-5" />
+                          <p>Your verification was rejected.</p>
+                        </div>
                         {uservalue.verificationComments && (
-                          <p className="text-sm">Reason: {uservalue.verificationComments}</p>
+                          <p className="text-sm mt-2">Reason: {uservalue.verificationComments}</p>
                         )}
+                        <Button 
+                          onClick={() => router.push('/dashboard/verification')} 
+                          className="mt-3" 
+                          size="sm"
+                        >
+                          Resubmit Documents
+                        </Button>
                       </div>
                     ) : (
                       <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
-                        <p>Your account is not yet verified.</p>
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-5 w-5" />
+                          <p>Your account is not yet verified.</p>
+                        </div>
+                        <p className="text-sm mt-2">Verification gives you full access to all features.</p>
                         <Button 
                           onClick={() => router.push('/dashboard/verification')} 
-                          className="mt-2" 
+                          className="mt-3" 
                           size="sm"
                         >
                           Start Verification
