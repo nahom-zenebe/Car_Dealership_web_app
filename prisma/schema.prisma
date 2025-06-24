@@ -71,6 +71,7 @@ model User {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
+  isActive  Boolean  @default(true)
   savedPaymentMethods   PaymentMethod[]
     theme         String     @default("system")
   darkMode      Boolean    @default(false)
