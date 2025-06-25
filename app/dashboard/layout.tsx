@@ -36,7 +36,7 @@ export default function UserDashboardLayout({
 
 
   const navItems = [
-    { icon: <Home className="h-5 w-5" />, label: 'Dashboard', path: '/dashboard/user' },
+    { icon: <Home className="h-5 w-5" />, label: 'Discover', path: '/dashboard/user' },
     { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: 'vechile' },
     { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
     { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },

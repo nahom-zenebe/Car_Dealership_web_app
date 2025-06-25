@@ -51,7 +51,6 @@ interface FavoriteStore {
   isFavorite: (carId: string) => boolean;
 }
 
-
 export const useFavoriteStore = create<FavoriteStore>((set, get) => ({
   favorites: [],
   toggleFavorite: (car) =>

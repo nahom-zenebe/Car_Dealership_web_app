@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe, StripeCardElement } from '@stripe/stripe-js';
 import { useCartStore } from '@/app/stores/useAppStore';
 import PaymentForm from '@/app/components/layout/PaymentForm'
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+
 
 interface FormData {
   firstName: string;
@@ -29,6 +30,7 @@ const CheckoutPage = () => {
   const [clientSecret, setClientSecret] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardComplete, setCardComplete] = useState(false);
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -43,15 +45,17 @@ const CheckoutPage = () => {
   const { items, clearCart } = useCartStore();
   const router = useRouter();
 
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
-
   useEffect(() => {
     if (activeTab === 'payment' && items.length > 0 && !clientSecret) {
       createPaymentIntent();
     }
-  }, [activeTab]);
+  }, [activeTab]); 
+  
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal + tax;
+
+
 
   const createPaymentIntent = async () => {
     setIsProcessing(true);
@@ -95,88 +99,6 @@ const CheckoutPage = () => {
       [name]: value
     }));
   };
-
-  const handlePaymentSubmit = async () => {
-    if (paymentMethod === 'credit') {
-      await handleStripePayment();
-    } else {
-      setActiveTab('confirmation');
-      await completePurchase();
-    }
-  };
-
-  const handleStripePayment = async () => {
-    if (!stripePromise || !clientSecret) {
-      toast.error('Payment system not initialized');
-      return;
-    }
-  
-    setIsProcessing(true);
-  
-    try {
-      const stripe = await stripePromise;
-      
-      // Get the card element - use the Elements provider method
-      const elements = useElements();
-      const cardElement = elements?.getElement(CardElement);
-      
-      if (!cardElement) {
-        throw new Error('Card element not found');
-      }
-  
-      // Create a clean billing details object without circular references
-      const cleanBillingDetails = {
-        name: formData.cardName || '',
-        email: formData.email || '',
-        phone: formData.phone || '',
-        address: {
-          line1: formData.address || '',
-          city: '',
-          state: '',
-          postal_code: '',
-          country: ''
-        }
-      };
-  
-      // Verify the object can be serialized (no circular references)
-      try {
-        JSON.stringify(cleanBillingDetails);
-      } catch (e) {
-        console.error('Billing details contains circular references:', cleanBillingDetails);
-        throw new Error('Invalid billing information');
-      }
-  
-      const paymentMethodData = {
-        card: cardElement,
-        billing_details: cleanBillingDetails
-      };
-  
-      const { error, paymentIntent } = await stripe!.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethodData,
-        receipt_email: formData.email || undefined,
-      });
-  
-      if (error) {
-        throw error;
-      }
-  
-      if (paymentIntent?.status === 'succeeded') {
-        await completePurchase(paymentIntent.id);
-        setActiveTab('confirmation');
-      }
-    } catch (error: any) {
-      console.error('Full payment error:', {
-        error: error.message,
-        stack: error.stack,
-        formData: JSON.parse(JSON.stringify(formData)) // Safe serialization
-      });
-      toast.error(error.message || 'Payment processing failed');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-  
-
 
   const completePurchase = async (paymentIntentId?: string) => {
     setIsProcessing(true);
@@ -386,8 +308,18 @@ const CheckoutPage = () => {
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <PaymentForm
                     cardName={formData.cardName}
+                    clientSecret={clientSecret}
+                    billingDetails={{
+                      name: formData.cardName,
+                      email: formData.email,
+                      phone: formData.phone,
+                      address: formData.address,
+                    }}
+                    onPaymentSuccess={async (paymentIntentId) => {
+                      await completePurchase(paymentIntentId);
+                      setActiveTab('confirmation');
+                    }}
                     onCardChange={setCardComplete}
-                    onPaymentSubmit={handlePaymentSubmit}
                     isProcessing={isProcessing}
                     paymentMethod={paymentMethod}
                     onPaymentMethodChange={setPaymentMethod}
@@ -518,9 +450,12 @@ const CheckoutPage = () => {
                   </button>
                 )}
 
-                {activeTab === 'payment' && (
+                {activeTab === 'payment' && paymentMethod !== 'credit' && (
                   <button 
-                    onClick={handlePaymentSubmit}
+                    onClick={async () => {
+                      setActiveTab('confirmation');
+                      await completePurchase();
+                    }}
                     disabled={
                       isProcessing || 
                       (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))

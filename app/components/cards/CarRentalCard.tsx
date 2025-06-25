@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { motion } from 'framer-motion';
 import { useFavoriteStore } from '@/app/stores/useAppStore';
 import { Car } from 'lucide-react';
+
 export default function CarRentalCard({
   id,
   make,
@@ -69,7 +70,6 @@ export default function CarRentalCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Type-safe validation
     const validateTransmission = (t: string): Transmission | undefined => {
       const validTransmissions: Transmission[] = ['Automatic', 'Manual', 'SemiAutomatic'];
       return validTransmissions.includes(t as Transmission) ? t as Transmission : undefined;
@@ -100,14 +100,40 @@ export default function CarRentalCard({
     addToCart(car);
     toast.success(`${make} ${model} added to cart`);
   };
-
-  
-
-  const handleAddToCompare = (e: React.MouseEvent) => {
+  const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.success('Added to comparison');
+    
+    // Type-safe validation for transmission
+    const validateTransmission = (t: string): Transmission | undefined => {
+      const validTransmissions: Transmission[] = ['Automatic', 'Manual', 'SemiAutomatic'];
+      return validTransmissions.includes(t as Transmission) ? t as Transmission : undefined;
+    };
+  
+    // Type-safe validation for fuelType
+    const validateFuelType = (f: string): FuelType | undefined => {
+      const validFuelTypes: FuelType[] = ['Gasoline', 'Diesel', 'Electric', 'Hybrid'];
+      return validFuelTypes.includes(f as FuelType) ? f as FuelType : undefined;
+    };
+  
+    const car = {
+      id,
+      make,
+      model,
+      year,
+      price,
+      mileage,
+      color,
+      inStock,
+      imageUrls,
+      transmission: validateTransmission(transmission),
+      fuelType: validateFuelType(fuelType),
+      features,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    toggleFavorite(car);
   };
-
   const renderRatingStars = () => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
@@ -141,7 +167,6 @@ export default function CarRentalCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Section */}
       <div className="h-48 relative overflow-hidden">
         {imageUrls?.length > 0 ? (
           <img
@@ -158,7 +183,6 @@ export default function CarRentalCard({
           </div>
         )}
 
-        {/* Top Badges */}
         <div className="absolute top-2 left-2 flex gap-2">
           {inStock ? (
             <Badge variant="default">Available</Badge>
@@ -168,20 +192,18 @@ export default function CarRentalCard({
           {features.includes('Featured') && <Badge variant="secondary">Featured</Badge>}
         </div>
 
-        {/* Favorite Button */}
-       <button
-      onClick={() => toggleFavorite(car)}
-      className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-      aria-label={favorited ? "Remove from wishlist" : "Add to wishlist"}
-    >
-      {favorited ? (
-        <FaHeart className="text-red-500" />
-      ) : (
-        <FaRegHeart className="text-gray-700" />
-      )}
-    </button>
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          aria-label={favorited ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          {favorited ? (
+            <FaHeart className="text-red-500" />
+          ) : (
+            <FaRegHeart className="text-gray-700" />
+          )}
+        </button>
 
-        {/* Image Counter */}
         {!isLoading && imageUrls.length > 1 && (
           <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
             {currentImageIndex + 1}/{imageUrls.length}
@@ -189,9 +211,7 @@ export default function CarRentalCard({
         )}
       </div>
 
-      {/* Content Section */}
       <div className="p-4">
-        {/* Title Section */}
         <div className="mb-3">
           <div className="flex justify-between items-start">
             <h2 className="text-xl font-bold text-gray-800 truncate">
@@ -200,7 +220,10 @@ export default function CarRentalCard({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button 
-                  onClick={handleAddToCompare}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toast.success('Added to comparison');
+                  }}
                   className="text-xs text-blue-600 hover:underline"
                 >
                   Compare
@@ -216,7 +239,6 @@ export default function CarRentalCard({
           </p>
         </div>
 
-        {/* Rating */}
         <div className="flex items-center mb-3 gap-2">
           {renderRatingStars()}
           <span className="text-gray-600 text-sm">
@@ -224,7 +246,6 @@ export default function CarRentalCard({
           </span>
         </div>
 
-        {/* Features */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="flex items-center text-gray-700 text-sm">
             <FaTachometerAlt className="mr-2 text-gray-500" />
@@ -244,7 +265,6 @@ export default function CarRentalCard({
           </div>
         </div>
 
-        {/* Features Badges */}
         {features.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {features.slice(0, 3).map((feature) => (
@@ -260,7 +280,6 @@ export default function CarRentalCard({
           </div>
         )}
 
-        {/* Price & Button */}
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
           <div>
             <p className="text-xs text-gray-500">Starting from</p>
@@ -278,7 +297,6 @@ export default function CarRentalCard({
           </Button>
         </div>
 
-        {/* View Details Link */}
         <div className="mt-3 text-right">
           <Link 
             href={`/cars/${id}`} 
