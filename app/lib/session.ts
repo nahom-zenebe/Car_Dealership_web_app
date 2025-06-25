@@ -2,7 +2,7 @@ import {cookies} from 'next/headers';
 import jwt from 'jsonwebtoken'
 
 
-const JWT_SECRET=process.env.JWT_SECRET||"secret_key_works";
+const JWT_SECRET="secrto-02-3";
 
 
 export async function getSession(){

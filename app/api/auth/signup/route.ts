@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET|| "default secret key"; 
+const JWT_SECRET = "secrto-02-3"; 
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
