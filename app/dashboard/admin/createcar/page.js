@@ -186,7 +186,7 @@ export default function CreateCarPage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold text-gray-900 mb-2">List Your Luxury Vehicle</h1>
-          <p className="text-lg text-gray-600">Fill in the details to showcase your car to potential renters</p>
+          <p className="text-lg text-gray-600">Fill in the details to showcase your car to potential buyers</p>
         </motion.div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

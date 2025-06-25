@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import { FaRegHeart } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
 import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car,ShoppingCart, Calendar, Wallet, BarChart2 } from 'lucide-react';
@@ -33,11 +34,12 @@ export default function UserDashboardLayout({
   const navigateTo = useNavigateTo();
   const logout = useAppStore((state) => state.logout);
   const  user = useAppStore((state) => state. user);
-
+  const role = user?.role;
 
   const navItems = [
-    { icon: <Home className="h-5 w-5" />, label: 'Discover', path: '/dashboard/user' },
-    { icon: <Car className="h-5 w-5" />, label: 'Vehicles', path: 'vechile' },
+    { icon: <Home className="h-5 w-5" />,  label: role === 'admin' ? 'Dashboard' : 'Discover',
+      path: role === 'admin'? '/dashboard/user':'dashboard/admin' },
+    { icon: <Car className="h-5 w-5" />, label: role === 'admin' ? 'CreatePosts' : 'vechile',  path: role === 'admin'? '/dashboard/admin/createcar':'dashboard/vechile'},
     { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
     { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
