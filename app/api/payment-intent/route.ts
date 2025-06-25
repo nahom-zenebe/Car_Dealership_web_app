@@ -1,31 +1,42 @@
+// app/api/payment-intent/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import {  PrismaClient } from '../../generated/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+const prisma = new PrismaClient();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+
+});
 
 export async function POST(request: Request) {
   try {
     const { amount, currency, items } = await request.json();
-    
+
+    // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
       metadata: {
-        items: JSON.stringify(items)
+        items: JSON.stringify(items.map((item: any) => ({
+          carId: item.carId,
+          price: item.price,
+          quantity: item.quantity,
+        }))),
       },
       automatic_payment_methods: {
         enabled: true,
       },
     });
 
-    return NextResponse.json({ 
-      clientSecret: paymentIntent.client_secret 
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
     });
-  } catch (error) {
-    console.error('Error creating payment intent:', error);
+  } catch (err: any) {
     return NextResponse.json(
-      { error: 'Failed to create payment intent' },
-      { status: 500 }
+      { error: { message: err.message } },
+      { status: 400 }
     );
   }
 }

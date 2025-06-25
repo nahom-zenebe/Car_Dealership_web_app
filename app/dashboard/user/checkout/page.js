@@ -7,15 +7,15 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from "@/app/stores/useAppStore";
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import type { StripeCardElementChangeEvent } from '@stripe/stripe-js';
+import { StripeCardElementChangeEvent } from '@stripe/stripe-js';
 
 // Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-export default function CheckoutPage() {
-  const [activeTab, setActiveTab] = useState('delivery');
+const CheckoutPage = () => {
+  const [activeTab, setActiveTab] = useState<'delivery' | 'payment' | 'confirmation'>('delivery');
   const [saveInfo, setSaveInfo] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('credit');
+  const [paymentMethod, setPaymentMethod] = useState<'credit' | 'finance' | 'bank'>('credit');
   const [clientSecret, setClientSecret] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardComplete, setCardComplete] = useState(false);
@@ -29,13 +29,10 @@ export default function CheckoutPage() {
     cardName: ''
   });
 
-  const {
-    items,
-    removeFromCart,
-    totalPrice,
-    clearCart,
-  } = useCartStore();
+  const { items, removeFromCart, clearCart } = useCartStore();
   const router = useRouter();
+  const stripe = useStripe();
+  const elements = useElements();
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
@@ -43,10 +40,10 @@ export default function CheckoutPage() {
 
   // Create payment intent when reaching payment step
   useEffect(() => {
-    if (activeTab === 'payment' && paymentMethod === 'credit') {
+    if (activeTab === 'payment' && paymentMethod === 'credit' && total > 0) {
       createPaymentIntent();
     }
-  }, [activeTab, paymentMethod]);
+  }, [activeTab, paymentMethod, total]);
 
   const createPaymentIntent = async () => {
     try {
@@ -66,6 +63,10 @@ export default function CheckoutPage() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
+
       const data = await response.json();
       setClientSecret(data.clientSecret);
     } catch (error) {
@@ -74,7 +75,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -82,7 +83,7 @@ export default function CheckoutPage() {
     }));
   };
 
-  const handleCardChange = (event: StripeCardElementChangeEvent) => {
+  const handleCardChange = (event) => {
     setCardComplete(event.complete);
   };
 
@@ -97,13 +98,17 @@ export default function CheckoutPage() {
   };
 
   const handleStripePayment = async () => {
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      toast.error('Payment system not initialized');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
-          card: elements.getElement(CardElement)!,
+          card: elements.getElement(CardElement),
           billing_details: {
             name: formData.cardName,
             email: formData.email,
@@ -118,7 +123,6 @@ export default function CheckoutPage() {
 
       if (error) {
         toast.error(error.message || "Payment failed");
-        setIsProcessing(false);
         return;
       }
 
@@ -134,7 +138,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const completePurchase = async (paymentIntentId?: string) => {
+  const completePurchase = async (paymentIntentId) => {
     try {
       const response = await fetch('/api/sales', {
         method: 'POST',
@@ -161,6 +165,7 @@ export default function CheckoutPage() {
       }
 
       clearCart();
+      toast.success('Purchase completed successfully!');
     } catch (error) {
       toast.error('Failed to complete purchase');
       console.error('Purchase error:', error);
@@ -168,9 +173,6 @@ export default function CheckoutPage() {
   };
 
   const PaymentForm = () => {
-    const stripe = useStripe();
-    const elements = useElements();
-
     return (
       <div className="p-6">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Payment Method</h2>
@@ -245,6 +247,7 @@ export default function CheckoutPage() {
                         value={formData.cardName}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                        required
                       />
                     </div>
                   </div>
@@ -312,10 +315,10 @@ export default function CheckoutPage() {
             onClick={handlePaymentSubmit}
             disabled={
               isProcessing || 
-              (paymentMethod === 'credit' && (!cardComplete || !formData.cardName))
+              (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))
             }
             className={`px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md ${
-              (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName))) ? 'opacity-50 cursor-not-allowed' : ''
+              (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isProcessing ? 'Processing...' : 'Complete Purchase'}
@@ -468,11 +471,15 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {activeTab === 'payment' && (
+              {activeTab === 'payment' && clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <PaymentForm />
                 </Elements>
-              )}
+              ) : activeTab === 'payment' ? (
+                <div className="p-6 text-center">
+                  <p>Loading payment information...</p>
+                </div>
+              ) : null}
 
               {activeTab === 'confirmation' && (
                 <div className="p-6 text-center">
@@ -599,10 +606,10 @@ export default function CheckoutPage() {
                     onClick={handlePaymentSubmit}
                     disabled={
                       isProcessing || 
-                      (paymentMethod === 'credit' && (!cardComplete || !formData.cardName))
+                      (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))
                     }
                     className={`w-full mt-6 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md ${
-                      (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName))) ? 'opacity-50 cursor-not-allowed' : ''
+                      (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
                     {isProcessing ? 'Processing...' : 'Complete Purchase'}
@@ -615,4 +622,6 @@ export default function CheckoutPage() {
       </div>
     </div>
   );
-}
+};
+
+export default CheckoutPage;
