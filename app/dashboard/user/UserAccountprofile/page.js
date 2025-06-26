@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -53,6 +53,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
 
 export default function UserProfile() {
   const uservalue = useAppStore((state) => state.user);
@@ -65,13 +75,38 @@ export default function UserProfile() {
   });
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [purchases, setPurchases] = useState([]);
+  const [loadingPurchases, setLoadingPurchases] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    if (uservalue?.id) {
+      fetchPurchases();
+    }
+  }, [uservalue?.id]);
+
+  const fetchPurchases = async () => {
+    try {
+      setLoadingPurchases(true);
+      const response = await fetch('/api/user/profile');
+      if (!response.ok) {
+        throw new Error('Failed to fetch purchases');
+      }
+      const data = await response.json();
+      setPurchases(data.purchases || []);
+    } catch (error) {
+      toast.error('Failed to load purchase history');
+      console.error(error);
+    } finally {
+      setLoadingPurchases(false);
+    }
+  };
 
   const handleEditClick = () => {
     setTempUser({
       name: uservalue?.name || '',
       email: uservalue?.email || '',
-      phone: uservalue?.phone|| '',
+      phone: uservalue?.phone || '',
       address: uservalue?.address || '',
     });
     setEditMode(true);
@@ -80,9 +115,6 @@ export default function UserProfile() {
   const handleCancelEdit = () => {
     setEditMode(false);
   };
-
-
-
 
   const handleSave = async () => {
     try {
@@ -106,7 +138,6 @@ export default function UserProfile() {
   
       const data = await res.json();
       
-      
       useAppStore.setState((state) => ({
         user: { ...state.user, ...data }
       }));
@@ -121,8 +152,6 @@ export default function UserProfile() {
     }
   };
   
-  
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTempUser(prev => ({ ...prev, [name]: value }));
@@ -203,6 +232,33 @@ export default function UserProfile() {
         </TooltipContent>
       </Tooltip>
     );
+  };
+
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      pending: { variant: 'secondary', text: 'Pending' },
+      completed: { variant: 'default', text: 'Completed' },
+      cancelled: { variant: 'destructive', text: 'Cancelled' },
+      delivered: { variant: 'success', text: 'Delivered' },
+    };
+    
+    return <Badge variant={statusMap[status]?.variant || 'outline'}>
+      {statusMap[status]?.text || status}
+    </Badge>;
+  };
+
+  const getPaymentStatusBadge = (status) => {
+    const statusMap = {
+      pending: { variant: 'secondary', text: 'Pending' },
+      processing: { variant: 'default', text: 'Processing' },
+      succeeded: { variant: 'success', text: 'Paid' },
+      failed: { variant: 'destructive', text: 'Failed' },
+      refunded: { variant: 'outline', text: 'Refunded' },
+    };
+    
+    return <Badge variant={statusMap[status]?.variant || 'outline'}>
+      {statusMap[status]?.text || status}
+    </Badge>;
   };
 
   return (
@@ -440,9 +496,97 @@ export default function UserProfile() {
                 <TabsContent value="purchases" className="pt-4">
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Your Purchases</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {uservalue?.purchases?.length ? 'Your purchase history will appear here' : 'No purchases yet'}
-                    </p>
+                    {loadingPurchases ? (
+                      <div className="flex justify-center items-center h-32">
+                        <p>Loading purchases...</p>
+                      </div>
+                    ) : purchases.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Car className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No purchases</h3>
+                        <p className="mt-1 text-sm text-gray-500">Your purchase history will appear here.</p>
+                        <div className="mt-6">
+                          <Button onClick={() => router.push('/cars')}>
+                            Browse Cars
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Order</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Items</TableHead>
+                              <TableHead>Total</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Payment</TableHead>
+                              <TableHead></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {purchases.map((purchase) => (
+                              <TableRow key={purchase.id}>
+                                <TableCell className="font-medium">
+                                  #{purchase.id.slice(-6).toUpperCase()}
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(purchase.saleDate), 'MMM dd, yyyy')}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex -space-x-2">
+                                    {purchase.items.slice(0, 3).map((item) => (
+                                      <Tooltip key={item.id}>
+                                        <TooltipTrigger>
+                                          <Avatar className="h-8 w-8 border-2 border-white">
+                                            <AvatarImage 
+                                              src={item.car.imageUrls[0] || '/default-car.jpg'} 
+                                              alt={`${item.car.make} ${item.car.model}`}
+                                            />
+                                            <AvatarFallback>
+                                              {item.car.make[0]}{item.car.model[0]}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          {item.car.make} {item.car.model} ({item.car.year})
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                    {purchase.items.length > 3 && (
+                                      <Avatar className="h-8 w-8 border-2 border-white bg-gray-100">
+                                        <AvatarFallback className="text-xs">
+                                          +{purchase.items.length - 3}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  ${purchase.price.toLocaleString()}
+                                </TableCell>
+                                <TableCell>
+                                  {getStatusBadge(purchase.status)}
+                                </TableCell>
+                                <TableCell>
+                                  {getPaymentStatusBadge(purchase.paymentStatus)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => router.push(`/purchases/${purchase.id}`)}
+                                  >
+                                    Details
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
                 

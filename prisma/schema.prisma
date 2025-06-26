@@ -44,6 +44,7 @@ model Sale {
   paymentStatus PaymentStatus @default(pending)
   paymentIntentId String? // For Stripe/other processors
   failureReason String?
+  emailSent      Boolean     @default(false)
 }
 
 model SaleItem {

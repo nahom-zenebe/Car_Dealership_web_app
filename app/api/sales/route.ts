@@ -82,3 +82,98 @@ export async function POST(request: Request) {
     );
   }
 }
+
+
+
+export async function GET(request: Request) {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    // Get user profile with purchases and payment methods
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        profilePhotoUrl: true,
+        isVerified: true,
+        verificationStatus: true,
+        createdAt: true,
+        purchases: {
+          select: {
+            id: true,
+            saleDate: true,
+            price: true,
+            paymentType: true,
+            status: true,
+            deliveryAddress: true,
+            deliveryDate: true,
+            paymentStatus: true,
+            items: {
+              select: {
+                id: true,
+                price: true,
+                car: {
+                  select: {
+                    id: true,
+                    make: true,
+                    model: true,
+                    year: true,
+                    imageUrls: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            saleDate: 'desc'
+          }
+        },
+        savedPaymentMethods: {
+          select: {
+            id: true,
+            type: true,
+            cardNumber: true,
+            cardExpiry: true,
+            cardName: true,
+            isDefault: true,
+            bankName: true,
+            accountNumber: true,
+            routingNumber: true,
+            createdAt: true
+          },
+          orderBy: {
+            isDefault: 'desc'
+          }
+        },
+        privacy: {
+          select: {
+            publicProfile: true,
+            activityStatus: true,
+            dataCollection: true
+          }
+        },
+        theme: true,
+        darkMode: true
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(user);
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: { message: err.message } },
+      { status: 400 }
+    );
+  }
+}
