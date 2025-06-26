@@ -418,14 +418,16 @@ export default function UserDashboard() {
                     className="flex-1 gap-2"
                     onClick={resetFilters}
                   >
-                    <FaUndo className="w-4 h-4" /> Reset All
+                    <FaUndo className="w-3 h-4 ml-3" /> Reset All
                   </Button>
                   <SheetTrigger asChild>
-                    <Button className="flex-1">
+                    <Button className="flex-1 w-3 h-8 mr-1">
                       Apply Filters
                     </Button>
                   </SheetTrigger>
                 </div>
+              </div>
+              <div className='mt-24'>
               </div>
             </SheetContent>
           </Sheet>
@@ -470,6 +472,7 @@ export default function UserDashboard() {
             >
               <FaUndo /> Reset Filters
             </Button>
+         
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
