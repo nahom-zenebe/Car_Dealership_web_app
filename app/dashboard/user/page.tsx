@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { FaSearch, FaFilter, FaUndo } from 'react-icons/fa';
 import React, { useState, useEffect } from 'react';
@@ -238,10 +238,10 @@ export default function UserDashboard() {
   const uniqueMakes = Array.from(new Set(cars.map(car => car.make))).sort();
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
+    <div className="bg-gray-50 min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 items-stretch">
+        <div className="flex flex-col md:flex-row gap-3 mb-6 items-stretch">
           <div className="relative flex-grow">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
@@ -255,19 +255,23 @@ export default function UserDashboard() {
           
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <FaFilter /> Filters
+              <Button variant="outline" className="gap-2 h-full">
+                <FaFilter className="w-4 h-4" /> Filters
               </Button>
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Filter Cars</SheetTitle>
+              <SheetHeader className="border-b pb-4 mb-4">
+                <SheetTitle className="text-xl font-semibold">Filter Cars</SheetTitle>
               </SheetHeader>
               
-              <div className="space-y-6 mt-6">
+              <div className="space-y-6">
                 {/* Price Range */}
-                <div>
-                  <Label>Price Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}</Label>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Price Range</Label>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>${priceRange[0].toLocaleString()}</span>
+                    <span>${priceRange[1].toLocaleString()}</span>
+                  </div>
                   <Slider
                     min={0}
                     max={100000}
@@ -275,17 +279,16 @@ export default function UserDashboard() {
                     value={priceRange}
                     onValueChange={(value) => setPriceRange(value as [number, number])}
                     minStepsBetweenThumbs={1}
-                    className="mt-2"
                   />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <span>$0</span>
-                    <span>$100,000</span>
-                  </div>
                 </div>
                 
                 {/* Year Range */}
-                <div>
-                  <Label>Year Range: {yearRange[0]} - {yearRange[1]}</Label>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Year Range</Label>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>{yearRange[0]}</span>
+                    <span>{yearRange[1]}</span>
+                  </div>
                   <Slider
                     min={1990}
                     max={new Date().getFullYear()}
@@ -293,17 +296,16 @@ export default function UserDashboard() {
                     value={yearRange}
                     onValueChange={(value) => setYearRange(value as [number, number])}
                     minStepsBetweenThumbs={1}
-                    className="mt-2"
                   />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <span>1990</span>
-                    <span>{new Date().getFullYear()}</span>
-                  </div>
                 </div>
                 
                 {/* Mileage Range */}
-                <div>
-                  <Label>Mileage Range: {mileageRange[0].toLocaleString()} - {mileageRange[1].toLocaleString()} miles</Label>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Mileage Range</Label>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>{mileageRange[0].toLocaleString()} mi</span>
+                    <span>{mileageRange[1].toLocaleString()} mi</span>
+                  </div>
                   <Slider
                     min={0}
                     max={200000}
@@ -311,26 +313,22 @@ export default function UserDashboard() {
                     value={mileageRange}
                     onValueChange={(value) => setMileageRange(value as [number, number])}
                     minStepsBetweenThumbs={1}
-                    className="mt-2"
                   />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <span>0</span>
-                    <span>200,000</span>
-                  </div>
                 </div>
                 
                 {/* Makes */}
-                <div>
-                  <Label>Makes</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Makes</Label>
+                  <div className="grid grid-cols-2 gap-3">
                     {uniqueMakes.map(make => (
-                      <div key={make} className="flex items-center space-x-2">
+                      <div key={make} className="flex items-center space-x-3">
                         <Checkbox
                           id={`make-${make}`}
                           checked={selectedMakes.includes(make)}
                           onCheckedChange={() => handleMakeToggle(make)}
+                          className="h-5 w-5 rounded-md border-gray-300"
                         />
-                        <Label htmlFor={`make-${make}`} className="font-normal">
+                        <Label htmlFor={`make-${make}`} className="text-sm font-normal">
                           {make}
                         </Label>
                       </div>
@@ -339,17 +337,18 @@ export default function UserDashboard() {
                 </div>
                 
                 {/* Transmission */}
-                <div>
-                  <Label>Transmission</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Transmission</Label>
+                  <div className="grid grid-cols-2 gap-3">
                     {['Automatic', 'Manual', 'SemiAutomatic'].map(transmission => (
-                      <div key={transmission} className="flex items-center space-x-2">
+                      <div key={transmission} className="flex items-center space-x-3">
                         <Checkbox
                           id={`trans-${transmission}`}
                           checked={selectedTransmissions.includes(transmission as Transmission)}
                           onCheckedChange={() => handleTransmissionToggle(transmission as Transmission)}
+                          className="h-5 w-5 rounded-md border-gray-300"
                         />
-                        <Label htmlFor={`trans-${transmission}`} className="font-normal">
+                        <Label htmlFor={`trans-${transmission}`} className="text-sm font-normal">
                           {transmission}
                         </Label>
                       </div>
@@ -358,17 +357,18 @@ export default function UserDashboard() {
                 </div>
                 
                 {/* Fuel Type */}
-                <div>
-                  <Label>Fuel Type</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="block mb-3 font-medium">Fuel Type</Label>
+                  <div className="grid grid-cols-2 gap-3">
                     {['Gasoline', 'Diesel', 'Electric', 'Hybrid'].map(fuelType => (
-                      <div key={fuelType} className="flex items-center space-x-2">
+                      <div key={fuelType} className="flex items-center space-x-3">
                         <Checkbox
                           id={`fuel-${fuelType}`}
                           checked={selectedFuelTypes.includes(fuelType as FuelType)}
                           onCheckedChange={() => handleFuelTypeToggle(fuelType as FuelType)}
+                          className="h-5 w-5 rounded-md border-gray-300"
                         />
-                        <Label htmlFor={`fuel-${fuelType}`} className="font-normal">
+                        <Label htmlFor={`fuel-${fuelType}`} className="text-sm font-normal">
                           {fuelType}
                         </Label>
                       </div>
@@ -378,17 +378,18 @@ export default function UserDashboard() {
                 
                 {/* Features */}
                 {availableFeatures.length > 0 && (
-                  <div>
-                    <Label>Features</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="block mb-3 font-medium">Features</Label>
+                    <div className="grid grid-cols-2 gap-3">
                       {availableFeatures.map(feature => (
-                        <div key={feature} className="flex items-center space-x-2">
+                        <div key={feature} className="flex items-center space-x-3">
                           <Checkbox
                             id={`feature-${feature}`}
                             checked={selectedFeatures.includes(feature)}
                             onCheckedChange={() => handleFeatureToggle(feature)}
+                            className="h-5 w-5 rounded-md border-gray-300"
                           />
-                          <Label htmlFor={`feature-${feature}`} className="font-normal">
+                          <Label htmlFor={`feature-${feature}`} className="text-sm font-normal">
                             {feature}
                           </Label>
                         </div>
@@ -398,26 +399,32 @@ export default function UserDashboard() {
                 )}
                 
                 {/* In Stock Only */}
-                <div className="flex items-center space-x-2">
+                <div className="bg-gray-50 p-4 rounded-lg flex items-center space-x-3">
                   <Checkbox
                     id="inStock"
                     checked={inStockOnly}
                     onCheckedChange={(checked) => setInStockOnly(checked === true)}
+                    className="h-5 w-5 rounded-md border-gray-300"
                   />
-                  <Label htmlFor="inStock" className="font-normal">
+                  <Label htmlFor="inStock" className="text-sm font-normal">
                     Show only in-stock vehicles
                   </Label>
                 </div>
                 
-                {/* Reset Button */}
-                <div className="pt-4">
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
                   <Button 
                     variant="outline" 
-                    className="w-full gap-2"
+                    className="flex-1 gap-2"
                     onClick={resetFilters}
                   >
-                    <FaUndo /> Reset Filters
+                    <FaUndo className="w-4 h-4" /> Reset All
                   </Button>
+                  <SheetTrigger asChild>
+                    <Button className="flex-1">
+                      Apply Filters
+                    </Button>
+                  </SheetTrigger>
                 </div>
               </div>
             </SheetContent>
@@ -441,7 +448,7 @@ export default function UserDashboard() {
         
         {/* Results Summary */}
         <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-gray-800">
             {filteredCars.length} {filteredCars.length === 1 ? 'car' : 'cars'} found
           </h2>
           {loading && <div className="text-sm text-gray-500">Loading...</div>}
@@ -465,7 +472,7 @@ export default function UserDashboard() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredCars.map((car) => (
               <CarRentalCard
                 key={car.id}
