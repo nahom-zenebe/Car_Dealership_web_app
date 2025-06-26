@@ -120,13 +120,26 @@ const CheckoutPage = () => {
               ? 'BankTransfer' 
               : 'Financing',
           deliveryAddress: formData.address,
-          paymentIntentId: paymentIntentId || paymentIntentId,
+          paymentIntentId,
           savePaymentMethod: saveInfo && paymentMethod === 'credit'
         }),
       });
 
+      let errorMsg = 'Purchase failed';
+      let data = null;
+      try {
+        data = await response.json();
+        if (data && (data.error || data.message)) {
+          errorMsg = data.error || data.message;
+        }
+      } catch (e) {
+        // If response is not JSON, fallback to text
+        const text = await response.text();
+        if (text) errorMsg = text;
+      }
+
       if (!response.ok) {
-        throw new Error('Purchase failed');
+        throw new Error(errorMsg);
       }
 
       clearCart();
@@ -313,7 +326,10 @@ const CheckoutPage = () => {
                       name: formData.cardName,
                       email: formData.email,
                       phone: formData.phone,
-                      address: formData.address,
+                      address: {
+                        line1: formData.address,
+                        postal_code: '',
+                      },
                     }}
                     onPaymentSuccess={async (paymentIntentId) => {
                       await completePurchase(paymentIntentId);
@@ -456,15 +472,11 @@ const CheckoutPage = () => {
                       setActiveTab('confirmation');
                       await completePurchase();
                     }}
-                    disabled={
-                      isProcessing || 
-                      (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))
-                    }
+                    disabled={isProcessing}
                     className={`w-full mt-6 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md ${
-                      (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
+                      isProcessing ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    
                     {isProcessing ? 'Processing...' : 'Complete Purchase'}
                   </button>
                 )}

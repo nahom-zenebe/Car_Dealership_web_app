@@ -62,7 +62,6 @@ export async function POST(request: Request) {
           create: items.map((item: any) => ({
             carId: item.carId,
             price: item.price,
-            quantity: item.quantity,
           })),
         },
       },
