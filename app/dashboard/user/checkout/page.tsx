@@ -464,6 +464,7 @@ const CheckoutPage = () => {
                       (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
+                    
                     {isProcessing ? 'Processing...' : 'Complete Purchase'}
                   </button>
                 )}
