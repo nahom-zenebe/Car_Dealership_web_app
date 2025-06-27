@@ -44,6 +44,9 @@ export default function UserDashboardLayout({
     { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
     { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
+    ...(role === 'admin' ? [
+      { icon: <BarChart2 className="h-5 w-5" />, label: 'Admin Analytics', path: '/dashboard/admin/analytics' }
+    ] : []),
   ];
 
   const handleOnLogout = async () => {

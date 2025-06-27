@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all sales data for admin
+    // Get all sales data for admin (last 6 months)
     const salesData = await prisma.sale.groupBy({
       by: ['saleDate'],
       where: {
@@ -21,14 +21,33 @@ export async function GET(request: Request) {
           gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
         }
       },
-      _sum: {
-        price: true
-      },
-      _count: {
-        id: true
-      },
-      orderBy: {
-        saleDate: 'asc'
+      _sum: { price: true },
+      _count: { id: true },
+      orderBy: { saleDate: 'asc' }
+    });
+
+    // Get total sales and revenue
+    const totalSales = await prisma.sale.count({
+      where: {
+        saleDate: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
+        }
+      }
+    });
+    const totalRevenue = await prisma.sale.aggregate({
+      _sum: { price: true },
+      where: {
+        saleDate: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
+        }
+      }
+    });
+    const uniqueBuyers = await prisma.sale.aggregate({
+      _count: { buyerId: true },
+      where: {
+        saleDate: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
+        }
       }
     });
 
@@ -78,7 +97,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       salesData,
       topModels,
-      topBuyers
+      topBuyers,
+      totalSales,
+      totalRevenue: totalRevenue._sum.price || 0,
+      uniqueBuyers: uniqueBuyers._count.buyerId || 0
     });
 
   } catch (error) {

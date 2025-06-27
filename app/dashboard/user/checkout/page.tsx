@@ -124,7 +124,7 @@ const CheckoutPage = () => {
           savePaymentMethod: saveInfo && paymentMethod === 'credit'
         }),
       });
-
+  
       let errorMsg = 'Purchase failed';
       let data = null;
       try {
@@ -137,11 +137,11 @@ const CheckoutPage = () => {
         const text = await response.text();
         if (text) errorMsg = text;
       }
-
+  
       if (!response.ok) {
         throw new Error(errorMsg);
       }
-
+  
       clearCart();
       toast.success('Purchase completed successfully!');
     } catch (error: any) {
