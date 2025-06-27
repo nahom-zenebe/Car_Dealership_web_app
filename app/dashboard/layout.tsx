@@ -46,7 +46,7 @@ export default function UserDashboardLayout({
       {
         icon: <Car className="h-5 w-5" />,
         label: 'Discover',
-        path: '/dashboard/user'
+        path: '/dashboard/admin/Discover'
       },
       {
         icon: <Car className="h-5 w-5" />,

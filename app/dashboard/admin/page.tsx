@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   const [categoryDistributionData, setCategoryDistributionData] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-  useEffect(() => {
+useEffect(() => {
     async function fetchData() {
       try {
         const [userRes, carRes, analyticsRes] = await Promise.all([
@@ -74,55 +74,55 @@ export default function AdminDashboard() {
         if (analytics.salesData) {
           setUserGrowthData({
             labels: analytics.salesData.map((d: any) => d.saleDate ? new Date(d.saleDate).toLocaleString('default', { month: 'short' }) : ''),
-            datasets: [
-              {
+    datasets: [
+      {
                 label: 'New Purchases',
                 data: analytics.salesData.map((d: any) => d._count ? d._count.id : d.count),
-                backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 2,
-                tension: 0.3,
-              },
-            ],
+        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+      },
+    ],
           });
           setRevenueData({
             labels: analytics.salesData.map((d: any) => d.saleDate ? new Date(d.saleDate).toLocaleString('default', { month: 'short' }) : ''),
-            datasets: [
-              {
-                label: 'Revenue ($)',
+    datasets: [
+      {
+        label: 'Revenue ($)',
                 data: analytics.salesData.map((d: any) => d._sum ? d._sum.price : d.revenue),
-                backgroundColor: 'rgba(16, 185, 129, 0.5)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                borderWidth: 2,
-                tension: 0.3,
-              },
-            ],
+        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+        borderColor: 'rgba(16, 185, 129, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+      },
+    ],
           });
         }
         // Category Distribution (Pie chart)
         if (analytics.topModels) {
           setCategoryDistributionData({
             labels: analytics.topModels.map((m: any) => m.model),
-            datasets: [
-              {
+    datasets: [
+      {
                 data: analytics.topModels.map((m: any) => m.count),
-                backgroundColor: [
-                  'rgba(59, 130, 246, 0.7)',
-                  'rgba(16, 185, 129, 0.7)',
-                  'rgba(245, 158, 11, 0.7)',
-                  'rgba(139, 92, 246, 0.7)',
-                  'rgba(236, 72, 153, 0.7)',
-                ],
-                borderColor: [
-                  'rgba(59, 130, 246, 1)',
-                  'rgba(16, 185, 129, 1)',
-                  'rgba(245, 158, 11, 1)',
-                  'rgba(139, 92, 246, 1)',
-                  'rgba(236, 72, 153, 1)',
-                ],
-                borderWidth: 1,
-              },
-            ],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(245, 158, 11, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(236, 72, 153, 0.7)',
+        ],
+        borderColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(139, 92, 246, 1)',
+          'rgba(236, 72, 153, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
           });
         }
         // Recent Activity (from salesData or topBuyers)

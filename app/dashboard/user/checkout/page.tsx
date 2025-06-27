@@ -108,50 +108,48 @@ const CheckoutPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Add this line
         body: JSON.stringify({
           items: items.map(item => ({
             carId: item.id,
             price: item.price,
             quantity: item.quantity
           })),
+          customerInfo: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            deliveryNotes: formData.deliveryNotes
+          },
           paymentType: paymentMethod === 'credit' 
             ? 'CreditCard' 
             : paymentMethod === 'bank' 
               ? 'BankTransfer' 
               : 'Financing',
-          deliveryAddress: formData.address,
-          paymentIntentId,
+          paymentIntentId: paymentIntentId, // Fix this duplicate
           savePaymentMethod: saveInfo && paymentMethod === 'credit'
         }),
       });
   
-      let errorMsg = 'Purchase failed';
-      let data = null;
-      try {
-        data = await response.json();
-        if (data && (data.error || data.message)) {
-          errorMsg = data.error || data.message;
-        }
-      } catch (e) {
-        // If response is not JSON, fallback to text
-        const text = await response.text();
-        if (text) errorMsg = text;
-      }
+      const data = await response.json(); // Parse the response body
   
       if (!response.ok) {
-        throw new Error(errorMsg);
+        throw new Error(data.message || 'Purchase failed');
       }
   
       clearCart();
       toast.success('Purchase completed successfully!');
+      return data; // Return the response data
     } catch (error: any) {
       console.error('Complete purchase error:', error);
       toast.error(error.message || 'Failed to complete purchase');
+      throw error; // Re-throw the error for upstream handling
     } finally {
       setIsProcessing(false);
     }
   };
-
   const isDeliveryInfoComplete = () => {
     return (
       formData.firstName.trim() &&
@@ -326,10 +324,7 @@ const CheckoutPage = () => {
                       name: formData.cardName,
                       email: formData.email,
                       phone: formData.phone,
-                      address: {
-                        line1: formData.address,
-                        postal_code: '',
-                      },
+                      address: formData.address,
                     }}
                     onPaymentSuccess={async (paymentIntentId) => {
                       await completePurchase(paymentIntentId);
@@ -472,9 +467,12 @@ const CheckoutPage = () => {
                       setActiveTab('confirmation');
                       await completePurchase();
                     }}
-                    disabled={isProcessing}
+                    disabled={
+                      isProcessing || 
+                      (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))
+                    }
                     className={`w-full mt-6 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md ${
-                      isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                      (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
                     {isProcessing ? 'Processing...' : 'Complete Purchase'}
