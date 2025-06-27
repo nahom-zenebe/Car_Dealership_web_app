@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiUserCheck, FiUserX, FiClock, FiSearch, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiUserCheck, FiUserX, FiClock, FiSearch } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -28,57 +28,60 @@ export default function VerificationDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [decisionLoading, setDecisionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchVerificationRequests = async () => {
-      try {
-        const response = await fetch('/api/admin/verifications');
-        if (!response.ok) throw new Error('Failed to fetch requests');
-        const data = await response.json();
-        setRequests(data);
-      } catch (error) {
-        toast.error('Error loading verification requests');
-        console.error(error);
-      } finally {
-        setIsLoading(false);
+  const fetchVerificationRequests = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/admin/verifications', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store'
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data = await response.json();
+      setRequests(data);
+    } catch (error) {
+      console.error('Fetch error:', error);
+      toast.error('Failed to load verification requests');
+      setRequests([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchVerificationRequests();
   }, []);
 
-  const filteredRequests = requests.filter(request =>
-    request.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.phone.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleDecision = async (userId: string, approved: boolean) => {
-    setDecisionLoading(userId);
+  const handleDecision = async (id: string, approved: boolean) => {
+    setDecisionLoading(id);
     try {
-      const response = await fetch('/api/admin/verifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          approved,
-          comments: `Verification ${approved ? 'approved' : 'rejected'} by admin`
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to submit decision');
-
-      const result = await response.json();
-      setRequests(requests.filter(req => req.userId !== userId));
-      toast.success(`Verification ${approved ? 'approved' : 'rejected'} successfully`);
+      const response = await fetch(
+        approved ? '/api/verification/approve' : '/api/verification/deny',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Failed to submit decision');
+      }
+      await fetchVerificationRequests();
+      toast.success(`Verification ${approved ? 'approved' : 'denied'} successfully`);
     } catch (error) {
-      toast.error('Error submitting decision');
-      console.error(error);
+      console.error('Decision error:', error);
+      toast.error('Failed to submit decision');
     } finally {
       setDecisionLoading(null);
     }
   };
+
+  const filteredRequests = requests.filter((request: any) =>
+    (request.user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (request.address || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -97,7 +100,6 @@ export default function VerificationDashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Verification Requests</h1>
           <p className="text-gray-600 mt-2">Review and manage user verification requests</p>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-4 border-b border-gray-200">
             <div className="relative">
@@ -106,14 +108,13 @@ export default function VerificationDashboard() {
               </div>
               <input
                 type="text"
-                placeholder="Search by name, email or phone..."
+                placeholder="Search by name or address..."
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
-
           {isLoading ? (
             <div className="p-8 flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -124,7 +125,7 @@ export default function VerificationDashboard() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {filteredRequests.map((request) => (
+              {filteredRequests.map((request: any) => (
                 <div key={request.id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -138,27 +139,21 @@ export default function VerificationDashboard() {
                         />
                       ) : (
                         <span className="text-gray-600 text-lg font-medium">
-                          {request.user.name.charAt(0).toUpperCase()}
+                          {request.user.name?.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </div>
-
                     <div className="ml-4 flex-1">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">{request.user.name}</h3>
-                          <p className="text-sm text-gray-500">{request.user.email}</p>
                         </div>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           <FiClock className="mr-1" /> Pending
                         </span>
                       </div>
-
                       <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Phone:</span> {request.phone}
-                          </p>
                           <p className="text-sm text-gray-600">
                             <span className="font-medium">Address:</span> {request.address}
                           </p>
@@ -169,23 +164,36 @@ export default function VerificationDashboard() {
                           </p>
                         </div>
                       </div>
-
+                      <div className="mt-2 flex gap-4">
+                        <div>
+                          <div className="text-xs text-gray-500">ID Front</div>
+                          {request.idFrontUrl && (
+                            <img src={request.idFrontUrl} alt="ID Front" className="h-24 rounded" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">ID Back</div>
+                          {request.idBackUrl && (
+                            <img src={request.idBackUrl} alt="ID Back" className="h-24 rounded" />
+                          )}
+                        </div>
+                      </div>
                       <div className="mt-4 flex space-x-3">
                         <button
-                          onClick={() => handleDecision(request.userId, true)}
-                          disabled={decisionLoading === request.userId}
+                          onClick={() => handleDecision(request.id, true)}
+                          disabled={decisionLoading === request.id}
                           className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                         >
                           <FiUserCheck className="mr-2" />
-                          {decisionLoading === request.userId ? 'Approving...' : 'Approve'}
+                          {decisionLoading === request.id ? 'Approving...' : 'Approve'}
                         </button>
                         <button
-                          onClick={() => handleDecision(request.userId, false)}
-                          disabled={decisionLoading === request.userId}
+                          onClick={() => handleDecision(request.id, false)}
+                          disabled={decisionLoading === request.id}
                           className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                         >
                           <FiUserX className="mr-2" />
-                          {decisionLoading === request.userId ? 'Rejecting...' : 'Reject'}
+                          {decisionLoading === request.id ? 'Denying...' : 'Deny'}
                         </button>
                       </div>
                     </div>

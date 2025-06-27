@@ -6,7 +6,8 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 // GET all pending verification requests
-export async function GET(request: NextRequest) {
+
+export async function GET(request: Request) {
   try {
     const currentUser = await getSession();
     
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true,
             phone: true,
+            address:true,
             profilePhotoUrl: true
           }
         }
@@ -35,7 +37,6 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Internal Error', { status: 500 });
   }
 }
-
 // POST to approve/reject a verification request
 export async function POST(request: NextRequest) {
   try {

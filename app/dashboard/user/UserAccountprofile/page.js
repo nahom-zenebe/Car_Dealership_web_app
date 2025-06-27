@@ -33,7 +33,6 @@ import {
 import {
   Settings,
   Edit,
-  Trash2,
   Key,
   Save,
   X,
@@ -46,7 +45,6 @@ import {
   XCircle,
   User,
   History,
-  FileText,
   Phone,
   MapPin,
 } from "lucide-react";
@@ -109,13 +107,43 @@ export default function UserProfile() {
 
   const fetchVerificationRequest = async () => {
     try {
-      const response = await fetch(`/api/user/${uservalue.id}/verification`);
+      const response = await fetch(`http://localhost:3000/api/user/${uservalue.id}/verifications`);
       if (response.ok) {
         const data = await response.json();
         setVerificationRequest(data);
       }
     } catch (error) {
       console.error('Error fetching verification request:', error);
+    }
+  };
+
+  const createVerificationRequest = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/user/${uservalue.id}/verifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: tempUser.phone,
+          address: tempUser.address
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create verification request');
+      }
+
+      const data = await response.json();
+      setVerificationRequest(data);
+      useAppStore.getState().setUser({ 
+        ...uservalue, 
+        verificationStatus: 'pending'
+      });
+      toast.success('Verification request submitted');
+    } catch (error) {
+      toast.error('Failed to submit verification request');
+      console.error(error);
     }
   };
 
@@ -137,7 +165,7 @@ export default function UserProfile() {
     try {
       setLoading(true);
   
-      const res = await fetch(`/api/user/${uservalue.id}/updateinfo`, {
+      const res = await fetch(`http://localhost:3000/api/user/${uservalue.id}/updateinfo`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,6 +186,13 @@ export default function UserProfile() {
       useAppStore.setState((state) => ({
         user: { ...state.user, ...data }
       }));
+
+      // Create verification request if phone and address were added
+      if ((!uservalue.phone && tempUser.phone) || (!uservalue.address && tempUser.address)) {
+        if (tempUser.phone && tempUser.address) {
+          await createVerificationRequest();
+        }
+      }
       
       setEditMode(false);
       toast.success('Profile updated successfully');
@@ -279,26 +314,18 @@ export default function UserProfile() {
   };
 
   const renderVerificationContent = () => {
-    if (!verificationRequest) {
+    if (!verificationRequest && (!uservalue?.phone || !uservalue?.address)) {
       return (
         <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            <p>Your account is not yet verified.</p>
+            <p>Complete your profile with phone and address to start verification</p>
           </div>
-          <p className="text-sm mt-2">Verification gives you full access to all features.</p>
-          <Button 
-            onClick={() => router.push('/dashboard/verification')} 
-            className="mt-3" 
-            size="sm"
-          >
-            Start Verification
-          </Button>
         </div>
       );
     }
 
-    if (verificationRequest.status === 'pending') {
+    if (verificationRequest?.status === 'pending') {
       return (
         <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md">
           <div className="flex items-center gap-2">
@@ -330,7 +357,7 @@ export default function UserProfile() {
       );
     }
 
-    if (verificationRequest.status === 'approved') {
+    if (verificationRequest?.status === 'approved') {
       return (
         <div className="bg-green-50 text-green-800 p-4 rounded-md">
           <div className="flex items-center gap-2">
@@ -346,7 +373,7 @@ export default function UserProfile() {
       );
     }
 
-    if (verificationRequest.status === 'rejected') {
+    if (verificationRequest?.status === 'rejected') {
       return (
         <div className="bg-red-50 text-red-800 p-4 rounded-md">
           <div className="flex items-center gap-2">
@@ -356,16 +383,18 @@ export default function UserProfile() {
           {verificationRequest.comments && (
             <p className="text-sm mt-2">Reason: {verificationRequest.comments}</p>
           )}
-          <Button 
-            onClick={() => router.push('/dashboard/verification')} 
-            className="mt-3" 
-            size="sm"
-          >
-            Resubmit Information
-          </Button>
         </div>
       );
     }
+
+    return (
+      <div className="bg-gray-50 text-gray-800 p-4 rounded-md">
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          <p>Verification status will appear here once you add phone and address.</p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -450,25 +479,25 @@ export default function UserProfile() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone (Optional)</Label>
+                    <Label htmlFor="phone">Phone *</Label>
                     <Input
                       id="phone"
                       name="phone"
                       value={tempUser.phone}
                       onChange={handleInputChange}
                       disabled={loading}
-                      placeholder="Add your phone number"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Address (Optional)</Label>
+                    <Label htmlFor="address">Address *</Label>
                     <Input
                       id="address"
                       name="address"
                       value={tempUser.address}
                       onChange={handleInputChange}
                       disabled={loading}
-                      placeholder="Add your address"
+                      required
                     />
                   </div>
                   
@@ -483,7 +512,7 @@ export default function UserProfile() {
                     </Button>
                     <Button 
                       onClick={handleSave}
-                      disabled={loading || !tempUser.name || !tempUser.email}
+                      disabled={loading || !tempUser.name || !tempUser.email || !tempUser.phone || !tempUser.address}
                     >
                       <Save className="mr-2 h-4 w-4" />
                       {loading ? 'Saving...' : 'Save'}
@@ -579,16 +608,6 @@ export default function UserProfile() {
                         <p className="text-sm font-medium">Verification Status</p>
                         <div className="flex items-center gap-2">
                           {renderVerificationBadge()}
-                          {uservalue?.verificationStatus !== 'approved' && (
-                            <Button 
-                              variant="link" 
-                              size="sm" 
-                              className="h-6 p-0 text-sm"
-                              onClick={() => router.push('/dashboard/verification')}
-                            >
-                              {uservalue?.verificationStatus ? 'Update' : 'Verify'}
-                            </Button>
-                          )}
                         </div>
                         {uservalue?.verifiedAt && (
                           <p className="text-xs text-muted-foreground mt-1">
