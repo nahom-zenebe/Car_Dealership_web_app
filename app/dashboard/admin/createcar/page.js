@@ -14,13 +14,11 @@ export default function CreateCarPage() {
     mileage: 20034,
     color: 'green',
     inStock: true,
-    imageUrl: '',
-    description:'',
-    features: [], 
-    transmission:'Automatic',
-    fuelType:'Gasoline'
+    description: '',
+    features: [],
+    transmission: 'Automatic',
+    fuelType: 'Gasoline'
   });
-  
   
   const [newFeature, setNewFeature] = useState('');
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -28,10 +26,12 @@ export default function CreateCarPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
-
 
   const handleAddFeature = () => {
     if (newFeature.trim() && !formData.features.includes(newFeature.trim())) {
@@ -57,56 +57,86 @@ export default function CreateCarPage() {
       toast.error("No files selected");
       return;
     }
-  
+
     try {
       setIsSubmitting(true);
       
-      const uploadPromises = files.map(async (file) => {
+      // Create preview URLs immediately
+      const newImages = files.map(file => ({
+        file,
+        preview: URL.createObjectURL(file),
+        url: null, // Will be set after upload
+        publicId: null
+      }));
+      
+      setUploadedImages(prev => [...prev, ...newImages]);
+      toast.success("Images processing...");
+
+      // Upload images sequentially
+      for (let i = 0; i < newImages.length; i++) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', newImages[i].file);
         
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         });
-  
+
         const data = await response.json();
         
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Upload failed');
         }
-  
-        return { 
-          file, 
-          preview: URL.createObjectURL(file),
-          url: data.url,
-          publicId: data.publicId
-        };
-      });
-  
-      const newImages = await Promise.all(uploadPromises);
-      setUploadedImages(prev => [...prev, ...newImages]);
+
+        // Update the specific image with URL and publicId
+        setUploadedImages(prev => 
+          prev.map(img => 
+            img.file === newImages[i].file 
+              ? { ...img, url: data.url, publicId: data.publicId } 
+              : img
+          )
+        );
+      }
+      
       toast.success("Images uploaded successfully");
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error.message || "Failed to upload images");
+      // Remove any failed uploads
+      setUploadedImages(prev => prev.filter(img => img.url !== null));
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  const handleRemoveImage = (index) => {
-    setUploadedImages(prev => {
-     
-      const removed = prev[index];
-      if (removed) URL.revokeObjectURL(removed.preview);
-  
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-  
 
- 
+  const handleRemoveImage = async (index) => {
+    const imageToRemove = uploadedImages[index];
+    
+    try {
+      // If image was uploaded to Cloudinary, try to delete it
+      if (imageToRemove.publicId) {
+        await fetch('/api/delete-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ publicId: imageToRemove.publicId }),
+        });
+      }
+    
+      // Clean up the object URL
+      URL.revokeObjectURL(imageToRemove.preview);
+      
+      // Remove from state
+      setUploadedImages(prev => prev.filter((_, i) => i !== index));
+      
+      toast.success("Image removed successfully");
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast.error("Failed to remove image");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -115,33 +145,30 @@ export default function CreateCarPage() {
       if (uploadedImages.length === 0) {
         throw new Error("Please upload at least one image");
       }
-  
-      const formData = new FormData();
-  
-      // Append all images
-      uploadedImages.forEach((image, index) => {
-        formData.append(`images`, image.file);
-      });
-  
-      // Append car data as JSON string
-      formData.append('carData', JSON.stringify({
-        make: formData.make,
-        model: formData.model,
+
+      // Filter out images that failed to upload
+      const successfullyUploadedImages = uploadedImages.filter(img => img.url);
+      if (successfullyUploadedImages.length === 0) {
+        throw new Error("No valid images to upload");
+      }
+
+      // Build the payload
+      const payload = {
+        ...formData,
         year: Number(formData.year),
         price: Number(formData.price),
         mileage: formData.mileage ? Number(formData.mileage) : undefined,
-        color: formData.color,
-        inStock: formData.inStock,
-        features: formData.features,
-        fuelType: formData.fuelType,
-        transmission: formData.transmission,
-        description: formData.description,
-      }));
-  
+        imageUrls: successfullyUploadedImages.map(img => img.url),
+      };
+
+      console.log(payload); // Debug: see what is being sent
+
       const response = await fetch('/api/cars', {
         method: 'POST',
-        body: formData,
-        // Don't set Content-Type header - the browser will set it with the correct boundary
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
   
       if (!response.ok) {
@@ -159,7 +186,7 @@ export default function CreateCarPage() {
         year: 2020,
         price: 0.0,
         mileage: undefined,
-        color: '',
+        color: 'green',
         inStock: true,
         description: '',
         features: [],
@@ -175,9 +202,10 @@ export default function CreateCarPage() {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
       <div className="max-w-6xl mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -205,7 +233,7 @@ export default function CreateCarPage() {
 
           <form onSubmit={handleSubmit} className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+              {/* Left Column - Form Fields */}
               <div>
                 {activeTab === 'details' && (
                   <motion.div
@@ -250,19 +278,8 @@ export default function CreateCarPage() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                         required
                       />
-                    </div> 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        min="1"  
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
                     </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                       <div className="flex items-center">
@@ -276,8 +293,8 @@ export default function CreateCarPage() {
                         <input
                           type="text"
                           value={formData.color}
-                          readOnly
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                          onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -293,7 +310,7 @@ export default function CreateCarPage() {
                         >
                           <option value="Automatic">Automatic</option>
                           <option value="Manual">Manual</option>
-                          <option value="SemiAutomatic">SemiAutomatic</option>
+                          <option value="SemiAutomatic">Semi-Automatic</option>
                         </select>
                         <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
                       </div>
@@ -328,7 +345,7 @@ export default function CreateCarPage() {
                   >
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">Upload Images</label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center relative">
                         <div className="flex flex-col items-center justify-center">
                           <FiUpload className="w-12 h-12 text-gray-400 mb-3" />
                           <p className="text-sm text-gray-600 mb-2">
@@ -342,7 +359,13 @@ export default function CreateCarPage() {
                           accept="image/*"
                           onChange={handleImageUpload}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={isSubmitting}
                         />
+                        {isSubmitting && (
+                          <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -352,18 +375,28 @@ export default function CreateCarPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                           {uploadedImages.map((image, index) => (
                             <div key={index} className="relative group">
-                              <img
-                                src={image.preview}
-                                alt={`Preview ${index}`}
-                                className="w-full h-32 object-cover rounded-lg"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <FiTrash2 className="w-3 h-3" />
-                              </button>
+                              {image.preview && (
+                                <>
+                                  <img
+                                    src={image.preview}
+                                    alt={`Preview ${index}`}
+                                    className="w-full h-32 object-cover rounded-lg"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveImage(index)}
+                                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    disabled={isSubmitting}
+                                  >
+                                    <FiTrash2 className="w-3 h-3" />
+                                  </button>
+                                  {!image.url && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -438,7 +471,7 @@ export default function CreateCarPage() {
                     className="space-y-6"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Daily Price ($)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <span className="text-gray-500">$</span>
@@ -471,6 +504,19 @@ export default function CreateCarPage() {
                           <span className="text-gray-500">mi</span>
                         </div>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="inStock"
+                          checked={formData.inStock}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Currently in stock</span>
+                      </label>
                     </div>
 
                     <div className="bg-blue-50 p-4 rounded-lg">
@@ -531,7 +577,7 @@ export default function CreateCarPage() {
                                 className="w-4 h-4 rounded-full mr-2 border border-gray-300"
                                 style={{ backgroundColor: formData.color }}
                               ></div>
-                              <span>{formData.color.toUpperCase()}</span>
+                              <span className="capitalize">{formData.color}</span>
                             </>
                           )}
                           {!formData.color && <span>-</span>}
@@ -539,14 +585,14 @@ export default function CreateCarPage() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Mileage</p>
-                        <p className="font-medium">{formData.mileage ? `${formData.mileage} mi` : '-'}</p>
+                        <p className="font-medium">{formData.mileage ? `${formData.mileage.toLocaleString()} mi` : '-'}</p>
                       </div>
                     </div>
 
                     {formData.price && (
                       <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-500">Daily Rate</p>
-                        <p className="text-2xl font-bold text-blue-600">${formData.price}</p>
+                        <p className="text-sm text-gray-500">Price</p>
+                        <p className="text-2xl font-bold text-blue-600">${formData.price.toLocaleString()}</p>
                       </div>
                     )}
 

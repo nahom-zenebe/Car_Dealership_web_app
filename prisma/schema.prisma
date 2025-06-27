@@ -21,6 +21,7 @@ model Car {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime?     @updatedAt
   transmission Transmission?
+  description  String?
   saleItems    SaleItem[]
   features     String[]
   fuelType     FuelType?

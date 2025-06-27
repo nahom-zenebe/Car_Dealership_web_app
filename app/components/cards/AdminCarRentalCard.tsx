@@ -245,12 +245,12 @@ export default function AdminCarRentalCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Admin Actions - Always visible but more prominent on hover */}
-      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+      <div className="absolute top-2 right-2 flex gap-2 z-10">
         <Button
           variant="destructive"
           size="icon"
           onClick={handleDeleteCar}
-          className="h-8 w-8 rounded-full shadow-md"
+          className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100 transition-opacity"
           title="Delete"
         >
           <MdDelete size={16} />
@@ -259,7 +259,7 @@ export default function AdminCarRentalCard({
           variant="secondary"
           size="icon"
           onClick={handleEditCar}
-          className="h-8 w-8 rounded-full shadow-md"
+          className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100 transition-opacity"
           title="Edit"
         >
           <MdEdit size={16} />
@@ -293,7 +293,7 @@ export default function AdminCarRentalCard({
 
         <button
           onClick={handleToggleFavorite}
-          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          className="absolute top-12 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-10"
           aria-label={favorited ? "Remove from wishlist" : "Add to wishlist"}
         >
           {favorited ? (
@@ -394,24 +394,6 @@ export default function AdminCarRentalCard({
               className="min-w-[100px]"
             >
               {inStock ? 'Add to Cart' : 'Unavailable'}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleEditCar}
-              className="shrink-0"
-              title="Edit"
-            >
-              <MdEdit size={18} />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDeleteCar}
-              className="shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-              title="Delete"
-            >
-              <MdDelete size={18} />
             </Button>
           </div>
         </div>

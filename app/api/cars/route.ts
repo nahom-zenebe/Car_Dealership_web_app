@@ -1,27 +1,19 @@
 import { NextResponse } from 'next/server';
 import { FuelType, PrismaClient, Transmission } from '../../generated/prisma';
 import { z } from 'zod';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 const prisma = new PrismaClient();
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-});
-
-// Zod schemas
+// Zod enums
 const fuelTypeEnum = z.nativeEnum(FuelType);
 const transmissionEnum = z.nativeEnum(Transmission);
 
+// Zod schema for car validation
 const carSchema = z.object({
   make: z.string().min(1),
   model: z.string().min(1),
   year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
-  price: z.number().positive(),
+  price: z.number().min(0),
   mileage: z.number().int().min(0).optional(),
   color: z.string().min(1).optional(),
   inStock: z.boolean().optional(),
@@ -29,66 +21,25 @@ const carSchema = z.object({
   fuelType: fuelTypeEnum,
   transmission: transmissionEnum,
   description: z.string().optional(),
+  imageUrls: z.array(z.string().url()).min(1), // 👈 required and validated
 });
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const formData = await request.formData();
-    
-    // Get JSON data from formData
-    const carData = formData.get('carData');
-    if (!carData || typeof carData !== 'string') {
-      return NextResponse.json(
-        { error: 'Missing car data' },
-        { status: 400 }
-      );
-    }
+    // Parse incoming JSON request
+    const body = await req.json();
 
-    // Parse and validate car data
-    const parsedData = JSON.parse(carData);
+    // Validate input
     const validatedData = carSchema.parse({
-      ...parsedData,
-      year: Number(parsedData.year),
-      price: Number(parsedData.price),
-      mileage: parsedData.mileage ? Number(parsedData.mileage) : undefined,
+      ...body,
+      year: Number(body.year),
+      price: Number(body.price),
+      mileage: body.mileage ? Number(body.mileage) : undefined,
     });
 
-    // Handle multiple image uploads
-    const imageFiles = formData.getAll('images');
-    const imageUrls: string[] = [];
-
-    for (const file of imageFiles) {
-      if (file instanceof Blob) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        
-        const uploadResult: UploadApiResponse = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'car-listings' },
-            (error, result?: UploadApiResponse) => {
-              if (error) return reject(error);
-              if (!result) return reject(new Error('Upload failed: no result returned'));
-              resolve(result);
-            }
-          );
-          uploadStream.end(buffer);
-        });
-
-        imageUrls.push(uploadResult.secure_url);
-      }
-    }
-
-    // Create car in database with all image URLs
+    // Save to DB
     const car = await prisma.car.create({
-      data: {
-        ...validatedData,
-        imageUrls, // Store as an array of URLs
-      },
+      data: validatedData,
     });
 
     return NextResponse.json(car, { status: 201 });
