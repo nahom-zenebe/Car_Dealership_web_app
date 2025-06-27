@@ -47,6 +47,11 @@ export default function UserDashboardLayout({
     { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
     { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
+    {
+      icon: <Car className="h-5 w-5" />,
+      label: 'Verification Request',
+      path: '/dashboard/admin/verification'
+    },
     ...(role === 'admin' ? [
       { icon: <BarChart2 className="h-5 w-5" />, label: 'Admin Analytics', path: '/dashboard/admin/analytics' },
       { icon: <User className="h-5 w-5" />, label: 'Verification Requests', path: '/dashboard/admin/verification' }

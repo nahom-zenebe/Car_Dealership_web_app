@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse} from 'next/server';
 import {  PrismaClient } from '@/app/generated/prisma';
 
-import { uploadToCloudinary } from '@/app/lib/cloundinary';
+
 import { requireAdmin } from '@/app/lib/session';
 const prisma = new PrismaClient();
 

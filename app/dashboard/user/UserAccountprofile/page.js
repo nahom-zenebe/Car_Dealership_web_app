@@ -46,6 +46,9 @@ import {
   XCircle,
   User,
   History,
+  FileText,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { useAppStore } from '@/app/stores/useAppStore';
 import {
@@ -77,11 +80,13 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [loadingPurchases, setLoadingPurchases] = useState(true);
+  const [verificationRequest, setVerificationRequest] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     if (uservalue?.id) {
       fetchPurchases();
+      fetchVerificationRequest();
     }
   }, [uservalue?.id]);
 
@@ -99,6 +104,18 @@ export default function UserProfile() {
       console.error(error);
     } finally {
       setLoadingPurchases(false);
+    }
+  };
+
+  const fetchVerificationRequest = async () => {
+    try {
+      const response = await fetch(`/api/user/${uservalue.id}/verification`);
+      if (response.ok) {
+        const data = await response.json();
+        setVerificationRequest(data);
+      }
+    } catch (error) {
+      console.error('Error fetching verification request:', error);
     }
   };
 
@@ -188,28 +205,28 @@ export default function UserProfile() {
   const renderVerificationBadge = () => {
     if (!uservalue?.verificationStatus) {
       return (
-        <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+        <Badge variant="secondary" className="flex items-center gap-1">
           <Shield className="h-3 w-3" />
           Not Verified
-        </span>
+        </Badge>
       );
     }
     
     const statusMap = {
       pending: { 
-        color: 'bg-yellow-100 text-yellow-800', 
-        text: 'Verification Pending',
-        icon: <Clock className="h-3 w-3" /> 
+        variant: 'warning',
+        icon: <Clock className="h-3 w-3" />,
+        text: 'Pending Review'
       },
       approved: { 
-        color: 'bg-green-100 text-green-800', 
-        text: 'Verified',
-        icon: <CheckCircle className="h-3 w-3" /> 
+        variant: 'success',
+        icon: <CheckCircle className="h-3 w-3" />,
+        text: 'Verified'
       },
       rejected: { 
-        color: 'bg-red-100 text-red-800', 
-        text: 'Verification Rejected',
-        icon: <XCircle className="h-3 w-3" /> 
+        variant: 'destructive',
+        icon: <XCircle className="h-3 w-3" />,
+        text: 'Rejected'
       },
     };
 
@@ -218,17 +235,17 @@ export default function UserProfile() {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={`${status.color} text-xs px-2 py-1 rounded-full flex items-center gap-1`}>
+          <Badge variant={status.variant} className="flex items-center gap-1">
             {status.icon}
             {status.text}
-          </span>
+          </Badge>
         </TooltipTrigger>
         <TooltipContent>
           {uservalue.verificationStatus === 'approved'
             ? "Your account has been fully verified"
             : uservalue.verificationStatus === 'pending'
-            ? "Your documents are under review"
-            : "Please update your documents to complete verification"}
+            ? "Your information is under review"
+            : "Please update your information to complete verification"}
         </TooltipContent>
       </Tooltip>
     );
@@ -259,6 +276,96 @@ export default function UserProfile() {
     return <Badge variant={statusMap[status]?.variant || 'outline'}>
       {statusMap[status]?.text || status}
     </Badge>;
+  };
+
+  const renderVerificationContent = () => {
+    if (!verificationRequest) {
+      return (
+        <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            <p>Your account is not yet verified.</p>
+          </div>
+          <p className="text-sm mt-2">Verification gives you full access to all features.</p>
+          <Button 
+            onClick={() => router.push('/dashboard/verification')} 
+            className="mt-3" 
+            size="sm"
+          >
+            Start Verification
+          </Button>
+        </div>
+      );
+    }
+
+    if (verificationRequest.status === 'pending') {
+      return (
+        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            <p>Your verification is pending review.</p>
+          </div>
+          <div className="mt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5" />
+                <div>
+                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm">{verificationRequest.phone}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5" />
+                <div>
+                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm">{verificationRequest.address}</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-yellow-700 mt-2">
+              Submitted on: {format(new Date(verificationRequest.createdAt), 'MMM d, yyyy h:mm a')}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (verificationRequest.status === 'approved') {
+      return (
+        <div className="bg-green-50 text-green-800 p-4 rounded-md">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            <p>Your account has been verified.</p>
+          </div>
+          {verificationRequest.updatedAt && (
+            <p className="text-sm mt-2">
+              Verified on: {format(new Date(verificationRequest.updatedAt), 'MMM d, yyyy h:mm a')}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (verificationRequest.status === 'rejected') {
+      return (
+        <div className="bg-red-50 text-red-800 p-4 rounded-md">
+          <div className="flex items-center gap-2">
+            <XCircle className="h-5 w-5" />
+            <p>Your verification was rejected.</p>
+          </div>
+          {verificationRequest.comments && (
+            <p className="text-sm mt-2">Reason: {verificationRequest.comments}</p>
+          )}
+          <Button 
+            onClick={() => router.push('/dashboard/verification')} 
+            className="mt-3" 
+            size="sm"
+          >
+            Resubmit Information
+          </Button>
+        </div>
+      );
+    }
   };
 
   return (
@@ -406,7 +513,7 @@ export default function UserProfile() {
                       <span className="font-medium">Address:</span> {uservalue?.address || 'Not provided'}
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Member since:</span> {uservalue?.createdAt ? new Date(uservalue.createdAt).toLocaleDateString() : 'N/A'}
+                      <span className="font-medium">Member since:</span> {uservalue?.createdAt ? format(new Date(uservalue.createdAt), 'MMM d, yyyy') : 'N/A'}
                     </p>
                   </div>
                   
@@ -485,7 +592,7 @@ export default function UserProfile() {
                         </div>
                         {uservalue?.verifiedAt && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}
+                            Verified on: {format(new Date(uservalue.verifiedAt), 'MMM d, yyyy')}
                           </p>
                         )}
                       </div>
@@ -532,7 +639,7 @@ export default function UserProfile() {
                                   #{purchase.id.slice(-6).toUpperCase()}
                                 </TableCell>
                                 <TableCell>
-                                  {format(new Date(purchase.saleDate), 'MMM dd, yyyy')}
+                                  {format(new Date(purchase.saleDate), 'MMM d, yyyy')}
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex -space-x-2">
@@ -602,70 +709,7 @@ export default function UserProfile() {
                 <TabsContent value="verification" className="pt-4">
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Account Verification</h3>
-                    {uservalue?.verificationStatus === 'approved' ? (
-                      <div className="bg-green-50 text-green-800 p-4 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5" />
-                          <p>Your account has been verified.</p>
-                        </div>
-                        {uservalue.verifiedAt && (
-                          <p className="text-sm mt-2">Verified on: {new Date(uservalue.verifiedAt).toLocaleDateString()}</p>
-                        )}
-                      </div>
-                    ) : uservalue?.verificationStatus === 'pending' ? (
-                      <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-5 w-5" />
-                          <p>Your verification is pending review.</p>
-                        </div>
-                        <div className="mt-4 space-y-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`h-2 w-2 rounded-full ${uservalue.documentsSubmitted ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                            <span className="text-sm">Document submission</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className={`h-2 w-2 rounded-full ${uservalue.verificationStatus === 'pending' ? 'bg-yellow-500' : 'bg-gray-300'}`}></div>
-                            <span className="text-sm">Under review</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-                            <span className="text-sm">Verification complete</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : uservalue?.verificationStatus === 'rejected' ? (
-                      <div className="bg-red-50 text-red-800 p-4 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <XCircle className="h-5 w-5" />
-                          <p>Your verification was rejected.</p>
-                        </div>
-                        {uservalue.verificationComments && (
-                          <p className="text-sm mt-2">Reason: {uservalue.verificationComments}</p>
-                        )}
-                        <Button 
-                          onClick={() => router.push('/dashboard/Verificationpage')} 
-                          className="mt-3" 
-                          size="sm"
-                        >
-                          Resubmit Documents
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="bg-blue-50 text-blue-800 p-4 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-5 w-5" />
-                          <p>Your account is not yet verified.</p>
-                        </div>
-                        <p className="text-sm mt-2">Verification gives you full access to all features.</p>
-                        <Button 
-                          onClick={() => router.push('/dashboard/verification')} 
-                          className="mt-3" 
-                          size="sm"
-                        >
-                          Start Verification
-                        </Button>
-                      </div>
-                    )}
+                    {renderVerificationContent()}
                   </div>
                 </TabsContent>
               </Tabs>

@@ -17,18 +17,14 @@ model Car {
   mileage      Int?
   color        String?
   inStock      Boolean       @default(true)
-   imageUrls    String[]
+  imageUrls    String[]
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime?      @updatedAt
-  transmission  Transmission?
-   saleItems SaleItem[]
+  updatedAt    DateTime?     @updatedAt
+  transmission Transmission?
+  saleItems    SaleItem[]
   features     String[]
   fuelType     FuelType?
 }
-
-
-
-
 
 model Sale {
   id              String      @id @default(auto()) @map("_id") @db.ObjectId
@@ -41,10 +37,10 @@ model Sale {
   deliveryAddress String
   deliveryDate    DateTime?
   items           SaleItem[]  
-  paymentStatus PaymentStatus @default(pending)
+  paymentStatus   PaymentStatus @default(pending)
   paymentIntentId String? // For Stripe/other processors
-  failureReason String?
-  emailSent      Boolean     @default(false)
+  failureReason   String?
+  emailSent       Boolean     @default(false)
 }
 
 model SaleItem {
@@ -65,8 +61,6 @@ model User {
   phone                 String?
   address               String?
   profilePhotoUrl       String?
-  governmentIdFrontUrl  String?
-  governmentIdBackUrl   String?
   isVerified            Boolean  @default(false)
   verificationStatus    VerificationStatus @default(pending)
   verificationComments  String?
@@ -76,9 +70,11 @@ model User {
   updatedAt             DateTime @updatedAt
   purchases             Sale[]
   savedPaymentMethods   PaymentMethod[]
-    theme         String     @default("system")
-  darkMode      Boolean    @default(false)
-    privacy       PrivacySettings?
+  theme                String     @default("system")
+  darkMode             Boolean    @default(false)
+  verificationRequest VerificationRequest? 
+  privacy              PrivacySettings?
+  
 }
 
 model PaymentMethod {
@@ -94,10 +90,7 @@ model PaymentMethod {
   accountNumber  String?  // For bank transfers
   routingNumber  String?  // For bank transfers (US)
   createdAt      DateTime @default(now())
-
 }
-
-
 
 model PrivacySettings {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -106,6 +99,18 @@ model PrivacySettings {
   dataCollection  Boolean  @default(false)
   userId          String   @unique @db.ObjectId
   user            User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationRequest {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId @unique 
+user   User   @relation(fields: [userId], references: [id])
+  phone      String
+  address    String
+  status     VerificationStatus @default(pending)
+  comments   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 enum PaymentType {
@@ -121,6 +126,7 @@ enum PaymentStatus {
   failed
   refunded
 }
+
 enum SaleStatus {
   pending
   completed
@@ -131,6 +137,7 @@ enum SaleStatus {
 enum UserRole {
   buyer
   seller
+  admin
 }
 
 enum VerificationStatus {
@@ -139,33 +146,15 @@ enum VerificationStatus {
   rejected
 }
 
-enum Transmission{
+enum Transmission {
   Automatic
   Manual
   SemiAutomatic
 }
 
 enum FuelType {
- Gasoline
- Diesel
- Electric
- Hybrid
+  Gasoline
+  Diesel
+  Electric
+  Hybrid
 }
-
-model VerificationRequest {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  address    String
-  idType     String
-  idFrontUrl String
-  idBackUrl  String
-  status     String   // 'pending', 'approved', 'denied'
-  userId     String?
-  createdAt  DateTime @default(now())
-}
-       
-
-
-
-
-

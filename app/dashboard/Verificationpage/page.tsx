@@ -29,35 +29,56 @@ export default function VerificationPage() {
     }
   };
 
+  // Cloudinary upload helper
+  const uploadToCloudinary = async (file: File) => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || !uploadPreset) {
+      toast.error('Cloudinary configuration is missing. Please contact support.');
+      throw new Error('Cloudinary environment variables are missing');
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+    const data = await res.json();
+    if (!data.secure_url) {
+      toast.error('Cloudinary upload failed.');
+      throw new Error('Cloudinary upload failed');
+    }
+    return data.secure_url;
+  };
+
   const handleSubmit = async () => {
     if (!frontId) {
       toast.error('Please upload front side of your ID');
       return;
     }
-
     try {
       setLoading(true);
+      // 1. Upload to Cloudinary
+      const frontUrl = await uploadToCloudinary(frontId);
+      let backUrl = '';
+      if (backId) backUrl = await uploadToCloudinary(backId);
 
-      const formData = new FormData();
-      formData.append('frontId', frontId);
-      if (backId) formData.append('backId', backId);
-
-      const response = await fetch(`/api/users/${user?.id}/verification`, {
+      // 2. Send to backend
+      const response = await fetch('/api/verification/request', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user?.name || '',
+          address: user?.address || '',
+          idType: 'Government ID',
+          idFront: frontUrl,
+          idBack: backUrl,
+          userId: user?.id,
+        }),
       });
 
       if (!response.ok) throw new Error('Verification submission failed');
-
-      const data = await response.json();
-
-      /*useAppStore.getState().setUser({
-        ...user,
-        verificationStatus: 'pending',
-        governmentIdFrontUrl: data.frontIdUrl,
-        governmentIdBackUrl: data.backIdUrl,
-      });*/
-
       toast.success('Verification submitted successfully!');
       router.push('/account');
     } catch (error) {
