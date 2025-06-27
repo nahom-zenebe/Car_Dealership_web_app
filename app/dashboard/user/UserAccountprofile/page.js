@@ -88,7 +88,7 @@ export default function UserProfile() {
   const fetchPurchases = async () => {
     try {
       setLoadingPurchases(true);
-      const response = await fetch('/api/user/profile');
+      const response = await fetch('/api/sales');
       if (!response.ok) {
         throw new Error('Failed to fetch purchases');
       }
