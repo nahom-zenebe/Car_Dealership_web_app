@@ -151,6 +151,18 @@ enum FuelType {
  Electric
  Hybrid
 }
+
+model VerificationRequest {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  address    String
+  idType     String
+  idFrontUrl String
+  idBackUrl  String
+  status     String   // 'pending', 'approved', 'denied'
+  userId     String?
+  createdAt  DateTime @default(now())
+}
        
 
 

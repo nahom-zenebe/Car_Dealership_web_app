@@ -643,7 +643,7 @@ export default function UserProfile() {
                           <p className="text-sm mt-2">Reason: {uservalue.verificationComments}</p>
                         )}
                         <Button 
-                          onClick={() => router.push('/dashboard/verification')} 
+                          onClick={() => router.push('/dashboard/Verificationpage')} 
                           className="mt-3" 
                           size="sm"
                         >

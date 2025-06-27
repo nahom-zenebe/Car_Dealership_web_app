@@ -39,13 +39,17 @@ export default function UserDashboardLayout({
   const navItems = [
     { icon: <Home className="h-5 w-5" />,  label: role === 'admin' ? 'Dashboard' : 'Discover',
       path: role === 'admin'? '/dashboard/user':'dashboard/admin' },
-    { icon: <Car className="h-5 w-5" />, label: role === 'admin' ? 'CreatePosts' : 'vechile',  path: role === 'admin'? '/dashboard/admin/createcar':'dashboard/vechile'},
+      {
+        icon: <Car className="h-5 w-5" />,
+        label: 'CreatePosts',
+        path: '/dashboard/admin/createcar'
+      },
     { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
     { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
-    { icon: <Wallet className="h-5 w-5" />, label: 'Payments', path: '/dashboard/user/checkout' },
     { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
     ...(role === 'admin' ? [
-      { icon: <BarChart2 className="h-5 w-5" />, label: 'Admin Analytics', path: '/dashboard/admin/analytics' }
+      { icon: <BarChart2 className="h-5 w-5" />, label: 'Admin Analytics', path: '/dashboard/admin/analytics' },
+      { icon: <User className="h-5 w-5" />, label: 'Verification Requests', path: '/dashboard/admin/verification' }
     ] : []),
   ];
 
