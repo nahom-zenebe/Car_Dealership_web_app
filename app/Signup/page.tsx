@@ -56,7 +56,12 @@ export default function Signuppage() {
       
       if(formData.role === "buyer") {
         router.push('/dashboard/user');
-      } else {
+      }
+      else if(formData.role === "seller"){
+            router.push('/dashboard/user');
+      }
+      
+      else {
         router.push('/dashboard/admin');
       }
     } catch (err) {
@@ -138,6 +143,7 @@ export default function Signuppage() {
               >
                 <option value="buyer">Buyer</option>
                 <option value="seller">Seller</option>
+                <option value="Admin">Admin</option>
               </select>
             </div>
 

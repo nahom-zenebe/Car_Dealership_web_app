@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   try {
     const currentUser = await getSession();
     
-    if (!currentUser || currentUser.user.role !== 'seller') {
+    if (!currentUser || currentUser.user.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

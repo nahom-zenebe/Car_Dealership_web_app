@@ -31,12 +31,18 @@ export async function getSession(){
     }
 
 }
-export async function requireAdmin(request?: Request) {
+export async function requireAdmin() {
     const session = await getSession();
-    console.log(session)
-    if (!session?.user || session.user.role !== 'seller') {
-
-      throw new Error('seller access required');
+    if (!session?.user || session.user.role !== 'admin') {
+      throw new Error('Admin access required');
     }
     return session;
   }
+  export async function requireAuth() {
+    const session = await getSession();
+    if (!session?.user) {
+      throw new Error('Authentication required');
+    }
+    return session;
+  }
+  
