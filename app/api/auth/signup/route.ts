@@ -15,7 +15,7 @@ const userSchema = z.object({
   address: z.string().optional(),
   role: z.enum(['buyer', 'seller']),
 });
-
+const isDev = process.env.NODE_ENV !== 'production';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -47,8 +47,9 @@ const hashedpassword=await bcrypt.hash(password,salt);
       value: token,
       httpOnly: true,
       path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: isDev ? 'lax' : 'none',
+      secure: !isDev, 
+      maxAge: 60 * 60 * 24 * 7,
     });
     return response;
 
