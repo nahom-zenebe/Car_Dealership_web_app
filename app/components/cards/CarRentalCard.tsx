@@ -293,7 +293,7 @@ export default function CarRentalCard({
             disabled={!inStock}
             className="min-w-[100px]"
           >
-            {inStock ? 'Rent Now' : 'Unavailable'}
+            {inStock ? 'Add to Cart' : 'Unavailable'}
           </Button>
         </div>
 

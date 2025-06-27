@@ -29,13 +29,7 @@ export async function GET(
 
     const car = await prisma.car.findUnique({
       where: { id },
-      include: {
-        sales: {
-          include: {
-            // We'll fix this below
-          },
-        },
-      },
+      
     });
 
     if (!car) {

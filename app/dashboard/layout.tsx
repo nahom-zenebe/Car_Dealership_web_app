@@ -190,19 +190,7 @@ export default function UserDashboardLayout({
               <span className="text-xl font-bold text-gray-800">AutoDrive</span>
             </div>
             <div className="flex items-center space-x-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="relative p-2 hover:bg-gray-100 rounded-full transition">
-                      <Bell className="h-5 w-5 text-gray-600" />
-                      <span className="absolute top-1 right-1 inline-flex h-2 w-2 bg-red-500 rounded-full" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Notifications</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full hover:bg-gray-100 p-1 transition focus:outline-none">
