@@ -64,6 +64,7 @@ export default function AdminCarRentalCard({
     features: features.join(', '), imageUrls: imageUrls.join(', ')
   });
   const [editLoading, setEditLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
  
   const addToCart = useCartStore((state) => state.addToCart);
   const { toggleFavorite, isFavorite } = useFavoriteStore();
@@ -156,6 +157,7 @@ export default function AdminCarRentalCard({
   };
 
   const confirmDelete = async () => {
+    setDeleteLoading(true);
     try {
       const res = await fetch(`/api/cars/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete car');
@@ -164,6 +166,8 @@ export default function AdminCarRentalCard({
       if (onDelete) onDelete(id);
     } catch (err) {
       toast.error('Failed to delete car');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -419,11 +423,11 @@ export default function AdminCarRentalCard({
             <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deleteLoading}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete Car
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteLoading}>
+              {deleteLoading ? 'Deleting...' : 'Delete Car'}
             </Button>
           </DialogFooter>
         </DialogContent>

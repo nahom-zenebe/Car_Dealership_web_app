@@ -44,9 +44,19 @@ const isAdmin = role === 'admin';
 const allNavItems = [
   {
     icon: <Home className="h-5 w-5" />,
-    label: 'Discover',
-    path: '/dashboard/user',
+    label:role==="admin"?"Dashboard":"Discover",
+    path:
+      role === 'admin'
+        ? '/dashboard/admin'
+        : '/dashboard/user',
     roles: ['admin', 'buyer', 'seller'],
+  }
+  ,
+  {
+    icon: <Car className="h-5 w-5" />,
+    label: 'Discover',
+    path: '/dashboard/admin/Discover',
+    roles: ['admin'], 
   },
   {
     icon: <ShoppingCart className="h-5 w-5" />,
@@ -69,8 +79,8 @@ const allNavItems = [
   {
     icon: <Car className="h-5 w-5" />,
     label: 'Create Posts',
-    path: '/dashboard/seller/createpost',
-    roles: ['admin', 'seller'], // not available to buyer
+    path: '/dashboard/admin/createcar',
+    roles: ['admin', 'seller'], 
   },
   {
     icon: <User className="h-5 w-5" />,

@@ -13,7 +13,7 @@ const userSchema = z.object({
   password: z.string().min(6),
   phone: z.string().optional(),
   address: z.string().optional(),
-  role: z.enum(['buyer', 'seller']),
+  role: z.enum(['buyer', 'seller','admin']),
 });
 const isDev = process.env.NODE_ENV !== 'production';
 export async function POST(request: Request) {

@@ -48,8 +48,8 @@ model SaleItem {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
   sale     Sale     @relation(fields: [saleId], references: [id])
   saleId   String   @db.ObjectId
-  car      Car      @relation(fields: [carId], references: [id])
-  carId    String   @db.ObjectId
+  car      Car?      @relation(fields: [carId], references: [id])
+  carId    String?   @db.ObjectId
   price    Float    
 }
 

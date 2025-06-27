@@ -1,4 +1,3 @@
-
 import { PrismaClient } from '../../../generated/prisma';
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
@@ -77,13 +76,14 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
+        // First, delete all SaleItem records referencing this car
+      
+        // Then, delete the car itself
         await prisma.car.delete({
             where: { id: params.id }
         });
         return new NextResponse(null, { status: 204 });
     } catch (error) {
-        
-
         console.error('Error deleting car:', error);
         return NextResponse.json({ error: 'Failed to delete car' }, { status: 500 });
     }
