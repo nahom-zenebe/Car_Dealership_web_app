@@ -37,26 +37,45 @@ export default function UserDashboardLayout({
   const role = user?.role;
 
   const navItems = [
-    { icon: <Home className="h-5 w-5" />,  label: role === 'admin' ? 'Dashboard' : 'Discover',
-      path: role === 'admin'? '/dashboard/user':'dashboard/admin' },
+    {
+      icon: <Home className="h-5 w-5" />,
+      label: role === 'seller' ? 'Dashboard' : 'Discover',
+      path: role === 'buyer' ? '/dashboard/user' : '/dashboard/admin'
+    },
+    ...(role === 'seller' ? [
+      {
+        icon: <Car className="h-5 w-5" />,
+        label: 'Discover',
+        path: '/dashboard/user'
+      },
       {
         icon: <Car className="h-5 w-5" />,
         label: 'CreatePosts',
         path: '/dashboard/admin/createcar'
       },
-    { icon: <ShoppingCart className="h-5 w-5" />, label: 'Carts', path: '/dashboard/Cartpage' },
-    { icon: <FaRegHeart  className="h-5 w-5" />, label: 'Favorite', path: '/dashboard/Favoritepage' },
-    { icon: <BarChart2 className="h-5 w-5" />, label: 'Analytics', path: '/dashboard/Analytics' },
-    {
-      icon: <Car className="h-5 w-5" />,
-      label: 'Verification Request',
-      path: '/dashboard/admin/verification'
-    },
-    ...(role === 'admin' ? [
-      { icon: <BarChart2 className="h-5 w-5" />, label: 'Admin Analytics', path: '/dashboard/admin/analytics' },
-      { icon: <User className="h-5 w-5" />, label: 'Verification Requests', path: '/dashboard/admin/verification' }
+      {
+        icon: <User className="h-5 w-5" />,
+        label: 'Verification Requests',
+        path: '/dashboard//Verificationpage'
+      }
     ] : []),
+    {
+      icon: <ShoppingCart className="h-5 w-5" />,
+      label: 'Carts',
+      path: '/dashboard/Cartpage'
+    },
+    {
+      icon: <FaRegHeart className="h-5 w-5" />,
+      label: 'Favorite',
+      path: '/dashboard/Favoritepage'
+    },
+    {
+      icon: <BarChart2 className="h-5 w-5" />,
+      label: 'Analytics',
+      path: '/dashboard/Analytics'
+    }
   ];
+  
 
   const handleOnLogout = async () => {
     try {
