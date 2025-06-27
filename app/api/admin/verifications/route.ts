@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   try {
     const currentUser = await getSession();
     
-    if (!currentUser || currentUser.user.role !== 'seller') {
+    if (!currentUser || currentUser.user.role !== 'admin') {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

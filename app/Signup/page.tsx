@@ -143,7 +143,7 @@ export default function Signuppage() {
               >
                 <option value="buyer">Buyer</option>
                 <option value="seller">Seller</option>
-                <option value="Admin">Admin</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
 

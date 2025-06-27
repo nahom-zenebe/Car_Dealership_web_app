@@ -40,55 +40,54 @@ export default function UserDashboardLayout({
 const isSeller = role === 'seller';
 const isAdmin = role === 'admin';
 
-const baseNavItems = [
+// Full list of nav items
+const allNavItems = [
   {
     icon: <Home className="h-5 w-5" />,
     label: 'Discover',
     path: '/dashboard/user',
+    roles: ['admin', 'buyer', 'seller'],
   },
   {
     icon: <ShoppingCart className="h-5 w-5" />,
     label: 'Carts',
     path: '/dashboard/Cartpage',
+    roles: ['admin', 'buyer', 'seller'],
   },
   {
     icon: <FaRegHeart className="h-5 w-5" />,
     label: 'Favorite',
     path: '/dashboard/Favoritepage',
+    roles: ['admin', 'buyer', 'seller'],
   },
   {
     icon: <BarChart2 className="h-5 w-5" />,
     label: 'Analytics',
     path: '/dashboard/Analytics',
+    roles: ['admin', 'buyer', 'seller'],
   },
-];
-
-// Seller = Buyer + CreatePosts
-const sellerExtras = [
   {
     icon: <Car className="h-5 w-5" />,
-    label: 'CreatePosts',
-    path: '/dashboard/admin/createcar',
+    label: 'Create Posts',
+    path: '/dashboard/seller/createpost',
+    roles: ['admin', 'seller'], // not available to buyer
   },
-];
-
-// Admin = Buyer + Seller + Verification
-const adminExtras = [
-  ...sellerExtras,
   {
     icon: <User className="h-5 w-5" />,
     label: 'Verification Requests',
-    path: '/dashboard/Verificationpage',
+    path: '/dashboard/admin/verification',
+    roles: ['admin'], // only admin
   },
 ];
 
-const navItems =
-  isAdmin
-    ? [...baseNavItems, ...adminExtras]
-    : isSeller
-    ? [...baseNavItems, ...sellerExtras]
-    : baseNavItems;
+// Determine current user's role
+const userRole = isAdmin ? 'admin' : isSeller ? 'seller' : 'buyer';
 
+// Filter based on role
+const navItems = allNavItems.filter(item => item.roles.includes(userRole));
+  
+  
+ 
   
 
   const handleOnLogout = async () => {
