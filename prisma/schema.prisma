@@ -53,6 +53,7 @@ model SaleItem {
   price    Float    
 }
 
+
 model User {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   name                  String
