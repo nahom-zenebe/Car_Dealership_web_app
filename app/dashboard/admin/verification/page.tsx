@@ -58,7 +58,7 @@ export default function VerificationDashboard() {
     setDecisionLoading(id);
     try {
       const response = await fetch(
-        approved ? '/api/verification/approve' : '/api/verification/deny',
+        approved ? '/api/admin/verifications/approve' : '/api/admin/verifications/deny',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
