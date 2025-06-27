@@ -32,7 +32,21 @@ export async function POST(request: Request) {
     );
 
     
-    return NextResponse.json({ message: 'Login successful', token });
+    return NextResponse.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        profilePhotoUrl: user.profilePhotoUrl,
+        verificationStatus: user.verificationStatus,
+        // add any other fields needed by the frontend
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });

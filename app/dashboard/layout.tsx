@@ -22,7 +22,7 @@ import { Bell, ChevronDown, Search, Settings, User, LogOut, Home, Car,ShoppingCa
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateTo } from '@/app/Hook/useNavigateTo';
-import { useAppStore,} from '@/app/stores/useAppStore';
+import { useAppStore} from '@/app/stores/useAppStore';
 
 export default function UserDashboardLayout({
   children,
