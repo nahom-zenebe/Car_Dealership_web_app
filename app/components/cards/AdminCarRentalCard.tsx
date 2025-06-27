@@ -384,7 +384,7 @@ export default function AdminCarRentalCard({
             <p className="text-xs text-gray-500">Starting from</p>
             <p className="text-xl font-bold text-gray-900">
               ${price.toLocaleString()}
-              <span className="text-sm text-gray-500">/day</span>
+             
             </p>
           </div>
           <div className="flex gap-2">

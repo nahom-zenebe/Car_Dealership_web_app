@@ -142,6 +142,16 @@ export default function CreateCarPage() {
     setIsSubmitting(true);
   
     try {
+      if (formData.price < 1) {
+        toast.error("Price must be at least 1");
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.mileage < 0) {
+        toast.error("Mileage cannot be negative");
+        setIsSubmitting(false);
+        return;
+      }
       if (uploadedImages.length === 0) {
         throw new Error("Please upload at least one image");
       }
@@ -481,7 +491,7 @@ export default function CreateCarPage() {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          min="0"
+                          min="1"
                           step="1"
                           className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                           required
@@ -498,7 +508,9 @@ export default function CreateCarPage() {
                           value={formData.mileage}
                           onChange={handleInputChange}
                           min="0"
+                          step="1"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                          required
                         />
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                           <span className="text-gray-500">mi</span>
