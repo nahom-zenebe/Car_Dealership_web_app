@@ -1,5 +1,3 @@
-
-
 import { CardDescription } from '@/components/ui/card';
 import { NextRequest, NextResponse } from 'next/server';
 import {  PrismaClient } from '../../../generated/prisma';
@@ -14,7 +12,7 @@ export async function GET(req:NextRequest) {
         return NextResponse.json({ error: 'cars is  not found' }, { status: 404 });
       }
       
-      return  NextResponse.json(cars);
+      return  NextResponse.json({ total: cars });
   
     }
     catch(err){

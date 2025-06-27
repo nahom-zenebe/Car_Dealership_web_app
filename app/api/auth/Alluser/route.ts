@@ -1,5 +1,3 @@
-
-
 import { NextRequest, NextResponse } from 'next/server';
 import {  PrismaClient } from '../../../generated/prisma';
 
@@ -13,7 +11,7 @@ export async function GET(req:NextRequest) {
         return NextResponse.json({ error: 'user is  not found' }, { status: 404 });
       }
       
-      return  NextResponse.json(user);
+      return  NextResponse.json({ total: user });
   
     }
     catch(err){

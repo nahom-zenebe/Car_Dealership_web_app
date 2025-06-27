@@ -46,108 +46,109 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [getalluser, setgetalluser] = useState(0);
   const [getallposts, setgetallposts] = useState(0);
+  const [totalPurchases, setTotalPurchases] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [userGrowthData, setUserGrowthData] = useState<any>(null);
+  const [revenueData, setRevenueData] = useState<any>(null);
+  const [categoryDistributionData, setCategoryDistributionData] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch('http://localhost:3000/api/auth/Alluser');
-      if (!res.ok) {
-        throw new Error('Failed to fetch users');
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [userRes, carRes, analyticsRes] = await Promise.all([
+          fetch('/api/auth/Alluser'),
+          fetch('/api/cars/getallposts'),
+          fetch('/api/admin/analytics'),
+        ]);
+        const userCount = await userRes.json();
+        const carCount = await carRes.json();
+        const analytics = await analyticsRes.json();
+
+        setgetalluser(typeof userCount === 'number' ? userCount : userCount.totalUsers || userCount.total || 0);
+        setgetallposts(typeof carCount === 'number' ? carCount : carCount.totalCars || carCount.total || 0);
+        setTotalPurchases(analytics.totalSales || 0);
+        setTotalRevenue(analytics.totalRevenue || 0);
+
+        // User Growth and Revenue Trends (Line/Bar charts)
+        if (analytics.salesData) {
+          setUserGrowthData({
+            labels: analytics.salesData.map((d: any) => d.saleDate ? new Date(d.saleDate).toLocaleString('default', { month: 'short' }) : ''),
+            datasets: [
+              {
+                label: 'New Purchases',
+                data: analytics.salesData.map((d: any) => d._count ? d._count.id : d.count),
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+              },
+            ],
+          });
+          setRevenueData({
+            labels: analytics.salesData.map((d: any) => d.saleDate ? new Date(d.saleDate).toLocaleString('default', { month: 'short' }) : ''),
+            datasets: [
+              {
+                label: 'Revenue ($)',
+                data: analytics.salesData.map((d: any) => d._sum ? d._sum.price : d.revenue),
+                backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+              },
+            ],
+          });
+        }
+        // Category Distribution (Pie chart)
+        if (analytics.topModels) {
+          setCategoryDistributionData({
+            labels: analytics.topModels.map((m: any) => m.model),
+            datasets: [
+              {
+                data: analytics.topModels.map((m: any) => m.count),
+                backgroundColor: [
+                  'rgba(59, 130, 246, 0.7)',
+                  'rgba(16, 185, 129, 0.7)',
+                  'rgba(245, 158, 11, 0.7)',
+                  'rgba(139, 92, 246, 0.7)',
+                  'rgba(236, 72, 153, 0.7)',
+                ],
+                borderColor: [
+                  'rgba(59, 130, 246, 1)',
+                  'rgba(16, 185, 129, 1)',
+                  'rgba(245, 158, 11, 1)',
+                  'rgba(139, 92, 246, 1)',
+                  'rgba(236, 72, 153, 1)',
+                ],
+                borderWidth: 1,
+              },
+            ],
+          });
+        }
+        // Recent Activity (from salesData or topBuyers)
+        if (analytics.salesData) {
+          setRecentActivity(
+            analytics.salesData.slice(-5).reverse().map((sale: any, idx: number) => ({
+              id: idx + 1,
+              user: analytics.topBuyers && analytics.topBuyers[idx] ? analytics.topBuyers[idx].name : 'User',
+              action: 'Purchased',
+              time: sale.saleDate ? new Date(sale.saleDate).toLocaleString() : '',
+              amount: sale._sum ? `$${sale._sum.price}` : sale.revenue ? `$${sale.revenue}` : '',
+            }))
+          );
+        }
+      } catch (err) {
+        console.error('Error fetching admin dashboard data:', err);
       }
-
-      const data = await res.json();
-      setgetalluser(data.totalUsers);
-    } catch (err) {
-      console.error('Error fetching user count:', err);
     }
-  };
-
-  fetchUsers();
-}, []);
-
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch('http://localhost:3000/api/cars/getallposts');
-      if (!res.ok) {
-        throw new Error('Failed to fetch users');
-      }
-
-      const data = await res.json();
-      setgetallposts(data.totalUsers);
-    } catch (err) {
-      console.error('Error fetching user count:', err);
-    }
-  };
-
-  fetchUsers();
-}, []);
+    fetchData();
+  }, []);
 
   const stats = [
-    { id: 1, name: 'Total Users', value:getalluser, change: '+12%', changeType: 'increase', icon: FaUsers },
-    { id: 2, name: 'Total Posts', value:getallposts, change: '+5%', changeType: 'increase', icon: FaFileAlt },
-    { id: 3, name: 'Total Purchases', value: '893', change: '-3%', changeType: 'decrease', icon: FaShoppingCart },
-    { id: 4, name: 'Total Revenue', value: '$48,256', change: '+18%', changeType: 'increase', icon: FaDollarSign },
-  ];
-
-  const userGrowthData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'New Users',
-        data: [120, 190, 170, 220, 280, 310],
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 2,
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const revenueData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Revenue ($)',
-        data: [6500, 5900, 8000, 8100, 9200, 10500],
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
-        borderColor: 'rgba(16, 185, 129, 1)',
-        borderWidth: 2,
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const categoryDistributionData = {
-    labels: ['Sedans', 'SUVs', 'Trucks', 'Electric', 'Luxury'],
-    datasets: [
-      {
-        data: [35, 25, 15, 15, 10],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(245, 158, 11, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(236, 72, 153, 0.7)',
-        ],
-        borderColor: [
-          'rgba(59, 130, 246, 1)',
-          'rgba(16, 185, 129, 1)',
-          'rgba(245, 158, 11, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(236, 72, 153, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const recentActivity = [
-    { id: 1, user: 'John Doe', action: 'Purchased BMW X5', time: '2 min ago', amount: '$65,200' },
-    { id: 2, user: 'Sarah Smith', action: 'Scheduled test drive', time: '15 min ago', car: 'Tesla Model Y' },
-    { id: 3, user: 'Mike Johnson', action: 'Submitted trade-in', time: '1 hour ago', car: '2018 Audi A4' },
-    { id: 4, user: 'Emily Wilson', action: 'Applied for financing', time: '3 hours ago', amount: '$32,500' },
-    { id: 5, user: 'David Brown', action: 'Viewed inventory', time: '5 hours ago', count: '12 vehicles' },
+    { id: 1, name: 'Total Users', value: getalluser, change: '+12%', changeType: 'increase', icon: FaUsers },
+    { id: 2, name: 'Total Posts', value: getallposts, change: '+5%', changeType: 'increase', icon: FaFileAlt },
+    { id: 3, name: 'Total Purchases', value: totalPurchases, change: '-3%', changeType: 'decrease', icon: FaShoppingCart },
+    { id: 4, name: 'Total Revenue', value: `$${totalRevenue}`, change: '+18%', changeType: 'increase', icon: FaDollarSign },
   ];
 
   return (
@@ -239,7 +240,7 @@ useEffect(() => {
               <FaChartBar className="h-5 w-5 text-gray-400" />
             </div>
             <div className="h-64">
-              <Line data={userGrowthData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }} />
+              {userGrowthData && <Line data={userGrowthData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }} />}
             </div>
           </div>
 
@@ -249,7 +250,7 @@ useEffect(() => {
               <FaDollarSign className="h-5 w-5 text-gray-400" />
             </div>
             <div className="h-64">
-              <Bar data={revenueData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }} />
+              {revenueData && <Bar data={revenueData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }} />}
             </div>
           </div>
         </div>
@@ -261,7 +262,7 @@ useEffect(() => {
               <FaChartBar className="h-5 w-5 text-gray-400" />
             </div>
             <div className="h-64">
-              <Pie data={categoryDistributionData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }} />
+              {categoryDistributionData && <Pie data={categoryDistributionData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }} />}
             </div>
           </div>
 
