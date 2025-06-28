@@ -21,10 +21,10 @@ const carUpdateSchema = z.object({
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     const car = await prisma.car.findUnique({
       where: { id },
@@ -45,14 +45,15 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const validatedData = carUpdateSchema.parse(body);
 
         const car = await prisma.car.update({
-            where: { id: params.id },
+            where: { id },
             data: validatedData,
         });
         return NextResponse.json(car, { status: 200 });
@@ -73,14 +74,15 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         // First, delete all SaleItem records referencing this car
       
         // Then, delete the car itself
         await prisma.car.delete({
-            where: { id: params.id }
+            where: { id }
         });
         return new NextResponse(null, { status: 204 });
     } catch (error) {

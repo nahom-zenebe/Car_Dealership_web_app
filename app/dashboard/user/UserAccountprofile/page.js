@@ -79,6 +79,8 @@ export default function UserProfile() {
   const [purchases, setPurchases] = useState([]);
   const [loadingPurchases, setLoadingPurchases] = useState(true);
   const [verificationRequest, setVerificationRequest] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -160,6 +162,7 @@ export default function UserProfile() {
 
   const handleCancelEdit = () => {
     setEditMode(false);
+    setPhotoPreview(null);
   };
 
   const handleSave = async () => {
@@ -196,6 +199,7 @@ export default function UserProfile() {
       }
       
       setEditMode(false);
+      setPhotoPreview(null);
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error(error.message || 'Failed to update profile');
@@ -214,27 +218,75 @@ export default function UserProfile() {
     const file = e.target.files[0];
     if (!file) return;
     
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPhotoPreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+    
     try {
-      setLoading(true);
-      const formData = new FormData();
-      formData.append('photo', file);
+      setPhotoUploading(true);
+      console.log('Starting photo upload...');
       
-      const response = await axios.post(`/api/user/${uservalue.id}/photo`, formData, {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      console.log('Uploading to /api/upload...');
+      const response = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      useAppStore.getState().setUser({ 
-        ...uservalue, 
-        profilePhotoUrl: response.data.photoUrl 
-      });
-      toast.success('Profile photo updated');
+      console.log('Upload response:', response.data);
+      
+      if (response.data.success) {
+        console.log('Upload successful, updating profile...');
+        
+        // Update user profile with the new photo URL
+        const updateResponse = await axios.patch(`/api/user/${uservalue.id}/updateinfo`, {
+          profilePhotoUrl: response.data.url
+        });
+        
+        console.log('Update response:', updateResponse.data);
+        
+        if (updateResponse.status === 200) {
+          // Update the user in the store with the new photo URL
+          const updatedUser = { 
+            ...uservalue, 
+            profilePhotoUrl: response.data.url 
+          };
+          useAppStore.setState({ user: updatedUser });
+          setPhotoPreview(response.data.url);
+          toast.success('Profile photo updated successfully!');
+        } else {
+          throw new Error('Failed to update profile');
+        }
+      } else {
+        throw new Error(response.data.error || 'Upload failed');
+      }
     } catch (error) {
-      toast.error('Failed to upload photo');
-      console.error(error);
+      console.error('Photo upload error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      toast.error(error.response?.data?.error || error.message || 'Failed to upload photo. Please try again.');
+      setPhotoPreview(null);
     } finally {
-      setLoading(false);
+      setPhotoUploading(false);
     }
   };
 
@@ -427,32 +479,59 @@ export default function UserProfile() {
             <CardContent className="flex flex-col items-center gap-4">
               <div className="relative">
                 <Avatar className="h-32 w-32">
-                  <AvatarImage src={uservalue?.profilePhotoUrl || '/default-avatar.jpg'} />
+                  <AvatarImage 
+                    src={photoPreview || uservalue?.profilePhotoUrl || '/default-avatar.jpg'} 
+                    alt={uservalue?.name || 'Profile'}
+                  />
                   <AvatarFallback>
                     {uservalue?.name?.split(' ').map(n => n[0]).join('') || 'US'}
                   </AvatarFallback>
                 </Avatar>
+                
+                {/* Upload overlay */}
                 {editMode && (
-                  <label htmlFor="photo-upload" className="absolute bottom-0 right-0">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 hover:opacity-100 transition-opacity">
                     <Input
                       id="photo-upload"
                       type="file"
                       accept="image/*"
                       className="hidden"
                       onChange={handlePhotoUpload}
-                      disabled={loading}
+                      disabled={photoUploading}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full h-10 w-10"
-                      disabled={loading}
+                      className="rounded-full h-10 w-10 bg-white hover:bg-gray-100"
+                      disabled={photoUploading}
+                      onClick={() => document.getElementById('photo-upload').click()}
                     >
-                      <Camera className="h-4 w-4" />
+                      {photoUploading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
                     </Button>
-                  </label>
+                  </div>
+                )}
+                
+                {/* Upload progress indicator */}
+                {photoUploading && (
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                      Uploading...
+                    </div>
+                  </div>
                 )}
               </div>
+              
+              {/* Photo upload instructions */}
+              {editMode && (
+                <div className="text-center text-xs text-gray-500 max-w-xs">
+                  <p>Click the camera icon to upload a new profile photo</p>
+                  <p>Supports JPG, PNG, GIF (max 5MB)</p>
+                </div>
+              )}
               
               {editMode ? (
                 <div className="w-full space-y-4">

@@ -170,7 +170,10 @@ const navItems = allNavItems.filter(item => item.roles.includes(userRole));
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center w-full p-2 rounded-lg hover:bg-gray-100 transition">
                   <Avatar className="mr-3">
-                    <AvatarImage src="https://i.pravatar.cc/40" />
+                  <AvatarImage
+        src={user?.profilePhotoUrl || "https://i.pravatar.cc/40"}
+        alt={user?.name || "User"}
+      />
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                   <div className="text-left">

@@ -51,7 +51,7 @@ export default function LandingPage() {
             </span>
           </div>
         </section>
-
+  
         {/* POPULAR BRANDS SECTION */}
         <section className="border-t border-blue-200 pt-12 bg-gradient-to-br from-blue-50/80 to-white/80 p-8 rounded-3xl shadow-lg mt-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
@@ -81,5 +81,5 @@ export default function LandingPage() {
         </section>
       </div>
     );
-}
+  }
   
