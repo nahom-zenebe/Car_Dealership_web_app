@@ -147,6 +147,7 @@ export default function CreateCarPage() {
         setIsSubmitting(false);
         return;
       }
+      
       if (formData.mileage < 0) {
         toast.error("Mileage cannot be negative");
         setIsSubmitting(false);

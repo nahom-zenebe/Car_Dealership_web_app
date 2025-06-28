@@ -21,7 +21,7 @@ interface FormData {
   cardName: string;
 }
 type CheckoutTab = 'delivery' | 'payment' | 'confirmation';
-type PaymentMethodType = 'credit' | 'finance' | 'bank';
+type PaymentMethodType = "credit" | 'finance' | 'bank';
 
 const CheckoutPage = () => {
   const [activeTab, setActiveTab] = useState<CheckoutTab>('delivery');

@@ -129,6 +129,7 @@ export default function UserProfile() {
           address: tempUser.address
         })
       });
+      
 
       if (!response.ok) {
         throw new Error('Failed to create verification request');

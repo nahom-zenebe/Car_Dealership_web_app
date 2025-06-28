@@ -141,6 +141,7 @@ export default function Signuppage() {
                 onChange={handleChange}
                 className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
+                
                 <option value="buyer">Buyer</option>
                 <option value="seller">Seller</option>
                 <option value="admin">Admin</option>

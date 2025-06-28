@@ -161,6 +161,7 @@ export const useAppStore = create<AuthState>((set, get) => ({
   logout: () =>
     set({ user: null, isAuthenticated: false, token: null }),
 
+
   submitVerification: async (frontId, backId) => {
     try {
       set({ loading: true, error: null });

@@ -42,6 +42,7 @@ type Car = {
   fuelType?: FuelType;
 };
 
+
 export default function UserDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [cars, setCars] = useState<Car[]>([]);

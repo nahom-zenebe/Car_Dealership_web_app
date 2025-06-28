@@ -44,6 +44,7 @@ export default function CartPage() {
     );
   }
 
+
   return (
     <div className="container py-8">
       <div className="flex items-center justify-between mb-8">

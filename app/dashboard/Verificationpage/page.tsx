@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Shield, Upload, X } from "lucide-react";
 
+
 export default function VerificationPage() {
   const user = useAppStore((state) => state.user);
   const router = useRouter();

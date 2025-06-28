@@ -34,6 +34,7 @@ export default function LandingLayout({ children }) {
             </Link>
           </nav>
 
+
           <div className="flex gap-4 items-center">
             
 
