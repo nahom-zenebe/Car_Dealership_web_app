@@ -50,8 +50,8 @@ interface UserAnalyticsProps {
 }
 
 function AnalyticsTrendsAndModels() {
-  const [salesData, setSalesData] = useState([]);
-  const [topModels, setTopModels] = useState([]);
+  const [salesData, setSalesData] = useState<CarPurchaseData[]>([]);
+  const [topModels, setTopModels] = useState<TopModelData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -147,7 +147,7 @@ function AnalyticsTrendsAndModels() {
   );
 }
 
-export default function UserAnalytics({ userId }: UserAnalyticsProps) {
+export default function AnalyticsPage() {
   const barChartRef = useRef<HTMLCanvasElement>(null);
   const lineChartRef = useRef<HTMLCanvasElement>(null);
   const pieChartRef = useRef<HTMLCanvasElement>(null);
@@ -179,7 +179,7 @@ export default function UserAnalytics({ userId }: UserAnalyticsProps) {
     };
 
     fetchAnalyticsData();
-  }, [timeRange, userId]);
+  }, [timeRange]);
 
   useEffect(() => {
     if (!purchaseData.length || !topModels.length) return;

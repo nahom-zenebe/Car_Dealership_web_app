@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       orderBy: { _count: { id: 'desc' } },
       take: 5,
     });
-    const carIds = topModelCounts.map(item => item.carId);
+    const carIds = topModelCounts.map(item => item.carId).filter((id): id is string => !!id);
     const cars = await prisma.car.findMany({
       where: { id: { in: carIds } },
       select: { id: true, make: true, model: true }
