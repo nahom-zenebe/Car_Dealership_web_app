@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
-const JWT_SECRET = "secrto-02-3";
+const JWT_SECRET = "secrto-02-3"; // Should be at least 32 bytes for HS256 in production
 
 const roleRoutes: Record<string, string[]> = {
   admin: [
@@ -29,23 +29,24 @@ const roleRoutes: Record<string, string[]> = {
   ],
 };
 
-function getRoleFromRequest(request: NextRequest): string {
+async function getRoleFromRequest(request: NextRequest): Promise<string> {
   const token = request.cookies.get('token')?.value;
-  if (!token) return 'buyer'; // fallback to buyer if not logged in
+  if (!token) return 'buyer';
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { role: string };
-    return decoded.role || 'buyer';
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    return (payload.role as string) || 'buyer';
   } catch {
     return 'buyer';
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
-  const role = getRoleFromRequest(request);
+  const role = await getRoleFromRequest(request);
   const allowedRoutes = roleRoutes[role] || [];
   const isAllowed = allowedRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   if (!isAllowed) {

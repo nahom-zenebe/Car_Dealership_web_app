@@ -49,6 +49,9 @@ export default function LoginPage() {
         role: data.user.role
       }, data.token);
 
+      // Set the token as a cookie for backend middleware
+      document.cookie = `token=${data.token}; path=/; max-age=604800`; // 7 days
+
       toast.success("Login successful");
       
       // Redirect based on role

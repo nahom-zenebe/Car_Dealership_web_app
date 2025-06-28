@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest,{params}:{params:{userId:string}}){
 
     try{
-        const session = await requireAdmin(request);
+        const session = await requireAdmin();
         const {userId}=params;
 
 
