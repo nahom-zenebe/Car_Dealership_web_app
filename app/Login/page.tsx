@@ -46,7 +46,18 @@ export default function LoginPage() {
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
-        role: data.user.role
+        role: data.user.role,
+        phone: data.user.phone || undefined,
+        address: data.user.address || undefined,
+        profilePhotoUrl: data.user.profilePhotoUrl || undefined,
+        governmentIdFrontUrl: data.user.governmentIdFrontUrl || undefined,
+        governmentIdBackUrl: data.user.governmentIdBackUrl || undefined,
+        verificationStatus: data.user.verificationStatus || undefined,
+        verificationComments: data.user.verificationComments || undefined,
+        verifiedAt: data.user.verifiedAt ? new Date(data.user.verifiedAt) : undefined,
+        verifiedByAdminId: data.user.verifiedByAdminId || undefined,
+        createdAt: new Date(data.user.createdAt),
+        updatedAt: data.user.updatedAt ? new Date(data.user.updatedAt) : undefined
       }, data.token);
 
       // Set the token as a cookie for backend middleware

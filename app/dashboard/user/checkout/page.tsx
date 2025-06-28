@@ -9,8 +9,6 @@ import { loadStripe, StripeCardElement } from '@stripe/stripe-js';
 import { useCartStore } from '@/app/stores/useAppStore';
 import PaymentForm from '@/app/components/layout/PaymentForm'
 
-
-
 interface FormData {
   firstName: string;
   lastName: string;
@@ -20,6 +18,16 @@ interface FormData {
   deliveryNotes: string;
   cardName: string;
 }
+
+interface AddressDetails {
+  line1: string;
+  line2?: string;
+  city?: string;
+  state?: string;
+  postal_code: string;
+  country?: string;
+}
+
 type CheckoutTab = 'delivery' | 'payment' | 'confirmation';
 type PaymentMethodType = "credit" | 'finance' | 'bank';
 
@@ -324,7 +332,11 @@ const CheckoutPage = () => {
                       name: formData.cardName,
                       email: formData.email,
                       phone: formData.phone,
-                      address: formData.address,
+                      address: {
+                        line1: formData.address,
+                        postal_code: '00000',
+                        country: 'US'
+                      },
                     }}
                     onPaymentSuccess={async (paymentIntentId) => {
                       await completePurchase(paymentIntentId);
@@ -467,12 +479,9 @@ const CheckoutPage = () => {
                       setActiveTab('confirmation');
                       await completePurchase();
                     }}
-                    disabled={
-                      isProcessing || 
-                      (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))
-                    }
+                    disabled={isProcessing}
                     className={`w-full mt-6 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-md ${
-                      (isProcessing || (paymentMethod === 'credit' && (!cardComplete || !formData.cardName || !clientSecret))) ? 'opacity-50 cursor-not-allowed' : ''
+                      isProcessing ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
                     {isProcessing ? 'Processing...' : 'Complete Purchase'}

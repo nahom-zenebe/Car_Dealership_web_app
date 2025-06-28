@@ -49,7 +49,18 @@ export default function Signuppage() {
         id: data.user.id,
         name: formData.name,
         email: formData.email,
-        role: formData.role
+        role: formData.role,
+        phone: formData.phone || undefined,
+        address: undefined,
+        profilePhotoUrl: undefined,
+        governmentIdFrontUrl: undefined,
+        governmentIdBackUrl: undefined,
+        verificationStatus: undefined,
+        verificationComments: undefined,
+        verifiedAt: undefined,
+        verifiedByAdminId: undefined,
+        createdAt: new Date(),
+        updatedAt: undefined
       }, data.token);
 
       toast.success("Signup successful");
