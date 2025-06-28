@@ -7,13 +7,13 @@ const prisma = new PrismaClient();
 
 
 
-export async function POST(request: NextRequest,{params}:{params:{userId:string}}){
-
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
     try{
         const session = await requireAdmin();
-        const {userId}=params;
-
-
+        const { userId } = await params;
 
         const {approved,comments}=await request.json();
 

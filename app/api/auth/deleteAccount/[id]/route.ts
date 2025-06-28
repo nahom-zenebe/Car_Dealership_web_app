@@ -1,6 +1,3 @@
-
-
-
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,9 +6,9 @@ import {  PrismaClient } from '../../../../generated/prisma';
 const prisma = new PrismaClient();
 
 
-export async function DELETE(req:NextRequest,context: { params: { id: string } }) {
+export async function DELETE(req:NextRequest,context: { params: Promise<{ id: string }> }) {
     try{
-      const {id}=context.params;
+      const {id}=await context.params;
       const user=await prisma.user.delete({
         where:{id}
       })

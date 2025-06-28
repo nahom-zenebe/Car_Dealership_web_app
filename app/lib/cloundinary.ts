@@ -7,6 +7,36 @@ cloudinary.config({
   secure: true,
 });
 
+// Function to upload base64 image to Cloudinary
+export async function uploadBase64ToCloudinary(base64Data: string, folder: string = 'car-listings'): Promise<string> {
+  try {
+    // Remove data:image/jpeg;base64, prefix if present
+    const base64Image = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
+    
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        `data:image/jpeg;base64,${base64Image}`,
+        {
+          folder: folder,
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+    });
+
+    return (result as any).secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw new Error('Failed to upload image to Cloudinary');
+  }
+}
+
 export const config = {
   api: {
     bodyParser: false,
