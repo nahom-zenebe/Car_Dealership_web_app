@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@/app/generated/prisma';
+import { prisma } from '@/app/lib/prisma';
 import { getSession } from '@/app/lib/session';
 import Stripe from 'stripe';
 
-const prisma = new PrismaClient();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Check if Stripe secret key is available
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('STRIPE_SECRET_KEY environment variable is not set');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 });
 
@@ -15,34 +19,61 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json(
+      { error: 'Stripe is not properly configured. Please set STRIPE_SECRET_KEY environment variable.' },
+      { status: 500 }
+    );
+  }
+
   try {
+    const body = await request.json();
+    console.log('Complete purchase request body:', body);
+    
     const {
       items,
       paymentType,
-      deliveryAddress,
+      customerInfo,
       paymentIntentId,
       savePaymentMethod,
-    } = await request.json();
+    } = body;
 
     // Validate input
     if (!items || !Array.isArray(items)) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 });
     }
 
-    if (!paymentType || !deliveryAddress) {
+    if (!paymentType || !customerInfo) {
       return NextResponse.json(
-        { error: 'Payment type and delivery address are required' },
+        { error: 'Payment type and customer information are required' },
         { status: 400 }
       );
     }
 
+    console.log('Creating sale with data:', {
+      buyerId: session.user.id,
+      price: items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0),
+      paymentType,
+      deliveryAddress: customerInfo.address,
+      itemsCount: items.length
+    });
+
     // Verify payment intent
     let paymentIntent;
     if (paymentIntentId) {
-      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      if (paymentIntent.status !== 'succeeded') {
+      try {
+        paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (paymentIntent.status !== 'succeeded') {
+          return NextResponse.json(
+            { error: 'Payment not completed' },
+            { status: 400 }
+          );
+        }
+      } catch (stripeError) {
+        console.error('Stripe payment intent verification failed:', stripeError);
         return NextResponse.json(
-          { error: 'Payment not completed' },
+          { error: 'Payment verification failed' },
           { status: 400 }
         );
       }
@@ -54,7 +85,7 @@ export async function POST(request: Request) {
         buyerId: session.user.id,
         price: items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0),
         paymentType,
-        deliveryAddress,
+        deliveryAddress: customerInfo.address,
         paymentIntentId,
         status: 'completed',
         paymentStatus: 'succeeded',
@@ -70,6 +101,8 @@ export async function POST(request: Request) {
       },
     });
 
+    console.log('Sale created successfully:', sale.id);
+
     // Update car stock status
     await Promise.all(
       items.map(async (item: any) => {
@@ -80,22 +113,30 @@ export async function POST(request: Request) {
       })
     );
 
+    console.log('Car stock updated successfully');
+
     // Save payment method if requested
     if (savePaymentMethod && paymentIntentId && paymentType === 'CreditCard') {
-      const paymentMethod = await stripe.paymentMethods.retrieve(
-        paymentIntent!.payment_method as string
-      );
+      try {
+        const paymentMethod = await stripe.paymentMethods.retrieve(
+          paymentIntent!.payment_method as string
+        );
 
-      await prisma.paymentMethod.create({
-        data: {
-          userId: session.user.id,
-          type: 'CreditCard',
-          cardNumber: paymentMethod.card?.last4 || '',
-          cardExpiry: `${paymentMethod.card?.exp_month}/${paymentMethod.card?.exp_year}`,
-          cardName: paymentMethod.billing_details?.name || '',
-          isDefault: true, // Set as default for now
-        },
-      });
+        await prisma.paymentMethod.create({
+          data: {
+            userId: session.user.id,
+            type: 'CreditCard',
+            cardNumber: paymentMethod.card?.last4 || '',
+            cardExpiry: `${paymentMethod.card?.exp_month}/${paymentMethod.card?.exp_year}`,
+            cardName: paymentMethod.billing_details?.name || '',
+            isDefault: true, // Set as default for now
+          },
+        });
+        console.log('Payment method saved successfully');
+      } catch (paymentMethodError) {
+        console.error('Failed to save payment method:', paymentMethodError);
+        // Don't fail the entire purchase if payment method saving fails
+      }
     }
 
     return NextResponse.json(sale);

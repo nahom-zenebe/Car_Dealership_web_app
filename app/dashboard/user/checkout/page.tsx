@@ -116,7 +116,7 @@ const CheckoutPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Add this line
+        credentials: 'include',
         body: JSON.stringify({
           items: items.map(item => ({
             carId: item.id,
@@ -136,24 +136,30 @@ const CheckoutPage = () => {
             : paymentMethod === 'bank' 
               ? 'BankTransfer' 
               : 'Financing',
-          paymentIntentId: paymentIntentId, // Fix this duplicate
+          paymentIntentId: paymentIntentId,
           savePaymentMethod: saveInfo && paymentMethod === 'credit'
         }),
       });
   
-      const data = await response.json(); // Parse the response body
+      const data = await response.json();
   
       if (!response.ok) {
-        throw new Error(data.message || 'Purchase failed');
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        throw new Error(data.error || data.message || `Purchase failed with status ${response.status}`);
       }
   
       clearCart();
       toast.success('Purchase completed successfully!');
-      return data; // Return the response data
+      return data;
     } catch (error: any) {
       console.error('Complete purchase error:', error);
-      toast.error(error.message || 'Failed to complete purchase');
-      throw error; // Re-throw the error for upstream handling
+      const errorMessage = error.message || 'Failed to complete purchase';
+      toast.error(errorMessage);
+      throw error;
     } finally {
       setIsProcessing(false);
     }

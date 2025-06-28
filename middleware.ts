@@ -15,6 +15,8 @@ const roleRoutes: Record<string, string[]> = {
     '/dashboard/admin/verification',
     '/dashboard/user/UserAccountprofile',
     '/dashboard/settingpage',
+    '/dashboard/user/checkout',
+      '/cars/:id'
   ],
   seller: [
     '/dashboard/user',
@@ -24,6 +26,8 @@ const roleRoutes: Record<string, string[]> = {
     '/dashboard/admin/createcar',
     '/dashboard/user/UserAccountprofile',
     '/dashboard/settingpage',
+    '/dashboard/user/checkout',
+    '/cars/:id'
   ],
   buyer: [
     '/dashboard/user',
@@ -32,6 +36,8 @@ const roleRoutes: Record<string, string[]> = {
     '/dashboard/Analytics',
     '/dashboard/user/UserAccountprofile',
     '/dashboard/settingpage',
+    '/dashboard/user/checkout',
+    '/cars/:id'
   ],
 };
 
