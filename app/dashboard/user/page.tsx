@@ -64,7 +64,7 @@ export default function UserDashboard() {
     const fetchCars = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:3000/api/cars');
+        const res = await fetch('/api/cars');
         if (!res.ok) {
           throw new Error('Failed to fetch cars');
         }

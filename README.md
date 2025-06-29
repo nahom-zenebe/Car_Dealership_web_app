@@ -7,11 +7,11 @@ It features a sleek API-driven backend with CRUD operations for cars, customers,
 
 ## 🛠️ Tech Stack
 
-- **Next.js** — React framework for server-rendered apps & API routes  
-- **Prisma** — Next-gen ORM to interact with MongoDB  
-- **MongoDB** — NoSQL database for flexible, scalable data storage  
-- **Stripe** — Payment gateway to process car purchases  
-- **React Context / Zustand** — For managing global app state (e.g., cart)  
+- **Next.js** — React framework for server-rendered apps & API routes
+- **Prisma** — Next-gen ORM to interact with MongoDB
+- **MongoDB** — NoSQL database for flexible, scalable data storage
+- **Stripe** — Payment gateway to process car purchases
+- **React Context / Zustand** — For managing global app state (e.g., cart)
 - **TypeScript** — Strong typing for safer code
 
 ---
@@ -20,19 +20,19 @@ It features a sleek API-driven backend with CRUD operations for cars, customers,
 
 ### Core
 
-- 🔍 Browse car listings with filters (make, model, year, price)  
-- 📦 Add cars to a shopping cart  
-- 🛒 View, update, or remove items from cart  
-- 👤 Customer registration & login (JWT-based authentication)  
-- 💳 Stripe integration for secure payment checkout  
-- 🗃️ Backend CRUD APIs for cars, customers, sales  
+- 🔍 Browse car listings with filters (make, model, year, price)
+- 📦 Add cars to a shopping cart
+- 🛒 View, update, or remove items from cart
+- 👤 Customer registration & login (JWT-based authentication)
+- 💳 Stripe integration for secure payment checkout
+- 🗃️ Backend CRUD APIs for cars, customers, sales
 - 🛠️ Admin dashboard (optional) to manage inventory & orders
 
 ### Advanced
 
-- 📝 User reviews & ratings for cars  
-- 📞 Contact form for inquiries  
-- 🔔 Email notifications for order confirmation  
+- 📝 User reviews & ratings for cars
+- 📞 Contact form for inquiries
+- 🔔 Email notifications for order confirmation
 - 📱 Responsive UI for mobile & desktop
 
 ---
@@ -66,7 +66,7 @@ npx prisma generate
 
 npm run dev
 
-Visit http://localhost:3000 to see the app.
+Visit  to see the app.
 📦 API Endpoints (Examples)
 
     GET /api/cars — List all cars
@@ -127,3 +127,4 @@ Contributions welcome! Please open issues or PRs for features, bugs, or improvem
 📄 License
 
 MIT License © 2025 Nahom Zenebe
+```
