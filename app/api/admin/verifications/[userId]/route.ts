@@ -4,10 +4,10 @@ import {  PrismaClient } from '@/app/generated/prisma';
 import { requireAdmin } from '@/app/lib/session';
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest, context: { params: { userId: string } }) {
+export async function POST(request: NextRequest) {
     try {
         const session = await requireAdmin();
-        const { userId } = context.params;
+        const userId = request.nextUrl.pathname.split('/')[4]; // Extract userId from URL
         const { approved, comments } = await request.json();
         const user = await prisma.user.update({
             where: { id: userId },

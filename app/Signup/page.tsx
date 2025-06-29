@@ -4,6 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/app/stores/useAppStore';
+import Link from 'next/link';
 
 export default function Signuppage() {
   const [formData, setFormData] = useState({
@@ -182,11 +183,11 @@ export default function Signuppage() {
             {isLoading ? 'Signing Up...' : 'Sign Up'}
           </button>
 
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             Already have an account?{' '}
-            <a href="/Login" className="text-blue-600 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded">
-              Login
-            </a>
+            <Link href="/Login" className="text-blue-600 hover:text-blue-800">
+              Sign in here
+            </Link>
           </p>
         </form>
       </div>
@@ -196,7 +197,7 @@ export default function Signuppage() {
         <div className="text-white text-center max-w-md">
           <h1 className="text-4xl font-bold mb-6">Join Our Community</h1>
           <p className="text-xl mb-8">
-            Whether you're looking to buy or sell, we've got you covered with the best platform for your needs.
+            Whether you&apos;re looking to buy or sell, we&apos;ve got you covered with the best platform for your needs.
           </p>
           <div className="space-y-4">
             <div className="flex items-center">

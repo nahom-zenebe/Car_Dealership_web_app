@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import OnboardingStep from '@/app/components/layout/OnboardingStep';
 import { FaUser, FaBriefcase, FaCar, FaMoneyBill, FaStar, FaSpinner } from 'react-icons/fa';

@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {  PrismaClient } from '../../../../generated/prisma';
 
-
 const prisma = new PrismaClient();
 
-export async function PATCH(
-    req: Request,
-    { params }: { params: { userId: string } }
-  ) {
-    const { userId } = params;
+export async function PATCH(req: Request) {
+    const userId = req.url.split('/')[4]; // Extract userId from URL
   
     try {
       // Check if user exists
@@ -20,7 +16,6 @@ export async function PATCH(
         return NextResponse.json({ message: "User not found" }, { status: 404 });
       }
   
-
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: { isActive: false },

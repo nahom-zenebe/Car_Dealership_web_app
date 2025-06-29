@@ -1,6 +1,3 @@
-
-
-
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -11,22 +8,18 @@ import {  PrismaClient } from '../../../../generated/prisma';
 
 
 const prisma = new PrismaClient();
-export async function  PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest) {
   try {
-    const { id } = context.params;
+    const id = request.nextUrl.pathname.split('/')[5];
     const { password } = await request.json();
 
     if (!id || !password) {
       return NextResponse.json({ error: 'User ID and password are required' }, { status: 400 });
     }
     const existingUser = await prisma.user.findUnique({ where: { id } });
-if (!existingUser) {
-  return NextResponse.json({ error: 'User not found' }, { status: 404 });
-}
-
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -44,5 +37,4 @@ if (!existingUser) {
     console.error('Error updating password:', err.message, err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-  
 }

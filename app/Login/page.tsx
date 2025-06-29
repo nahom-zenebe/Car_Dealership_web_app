@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/app/stores/useAppStore';
 import toast, { Toaster } from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
@@ -152,11 +153,11 @@ export default function LoginPage() {
             {isLoading ? 'Logging in...' : 'Log in'}
           </button>
 
-          <p className="text-center text-sm text-gray-600">
-            Don't have an account?{' '}
-            <a href="/Signup" className="text-blue-600 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded">
-              Sign up
-            </a>
+          <p className="text-sm text-gray-600 mb-4">
+            Don&apos;t have an account?{' '}
+            <Link href="/Signup" className="text-blue-600 hover:text-blue-800">
+              Sign up here
+            </Link>
           </p>
         </form>
       </div>

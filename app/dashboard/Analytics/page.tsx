@@ -45,11 +45,7 @@ interface TopModelData {
   count: number;
 }
 
-interface UserAnalyticsProps {
-  userId: string;
-}
-
-export default function UserAnalytics({ userId }: UserAnalyticsProps) {
+export default function UserAnalytics() {
   const barChartRef = useRef<HTMLCanvasElement>(null);
   const lineChartRef = useRef<HTMLCanvasElement>(null);
   const pieChartRef = useRef<HTMLCanvasElement>(null);
@@ -81,7 +77,7 @@ export default function UserAnalytics({ userId }: UserAnalyticsProps) {
     };
 
     fetchAnalyticsData();
-  }, [timeRange, userId]);
+  }, [timeRange]);
 
   useEffect(() => {
     if (!purchaseData.length || !topModels.length) return;

@@ -486,11 +486,11 @@ export default function UserDashboard() {
                 year={car.year}
                 price={car.price}
                 inStock={car.inStock}
-                mileage={car.mileage}
-                color={car.color}
+                mileage={car.mileage ?? 0}
+                color={car.color ?? ''}
                 imageUrls={car.imageUrls}
-                transmission={car.transmission}
-                fuelType={car.fuelType}
+                transmission={car.transmission ?? 'Automatic'}
+                fuelType={car.fuelType ?? 'Gasoline'}
                 features={car.features}
               />
             ))}

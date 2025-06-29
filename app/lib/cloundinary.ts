@@ -14,12 +14,17 @@ export const config = {
   },
 };
 
+interface CloudinaryResult {
+  secure_url: string;
+  public_id: string;
+}
+
 export async function uploadBase64ToCloudinary(base64Data: string, folder: string): Promise<string> {
   try {
     // Remove data URL prefix if present
     const base64Image = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
     
-    const result = await new Promise<any>((resolve, reject) => {
+    const result = await new Promise<CloudinaryResult>((resolve, reject) => {
       cloudinary.uploader.upload(
         `data:image/jpeg;base64,${base64Image}`,
         {
@@ -28,7 +33,7 @@ export async function uploadBase64ToCloudinary(base64Data: string, folder: strin
         },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          resolve(result as CloudinaryResult);
         }
       );
     });
@@ -55,12 +60,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Upload to Cloudinary
-    const result = await new Promise<any>((resolve, reject) => {
+    const result = await new Promise<CloudinaryResult>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'car-listings' },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          resolve(result as CloudinaryResult);
         }
       );
       uploadStream.end(formData);

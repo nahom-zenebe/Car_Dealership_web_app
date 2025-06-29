@@ -56,12 +56,14 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     if (sale) {
       await Promise.all(
-        sale.items.map((item) =>
-          prisma.car.update({
-            where: { id: item.carId },
-            data: { inStock: false },
-          })
-        )
+        sale.items
+          .filter((item) => item.carId !== null)
+          .map((item) =>
+            prisma.car.update({
+              where: { id: item.carId as string },
+              data: { inStock: false },
+            })
+          )
       );
     }
   } catch (error) {

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     // Compose order summary
     const orderSummary = sale.items.map(item =>
-      `${item.car.make} ${item.car.model} (${item.car.year}) - $${item.price.toFixed(2)}`
+      item.car ? `${item.car.make} ${item.car.model} (${item.car.year}) - $${item.price.toFixed(2)}` : `Car ID: ${item.carId} - $${item.price.toFixed(2)}`
     ).join('\n');
 
     // Send email

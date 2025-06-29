@@ -36,7 +36,7 @@ export default function CartPage() {
       >
         <ShoppingCart className="w-16 h-16 text-gray-400" />
         <h2 className="text-2xl font-bold text-gray-700">Your cart is empty</h2>
-        <p className="text-gray-500">Looks like you haven't added any items yet</p>
+        <p className="text-gray-500">Looks like you haven&apos;t added any items yet</p>
         <Button onClick={()=>router.push('/dashboard/user')} variant="outline" className="mt-4">
           Continue Shopping
         </Button>
