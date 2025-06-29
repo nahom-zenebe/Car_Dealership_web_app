@@ -1,3 +1,6 @@
+
+
+
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -10,10 +13,10 @@ import {  PrismaClient } from '../../../../generated/prisma';
 const prisma = new PrismaClient();
 export async function  PATCH(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = context.params;
     const { password } = await request.json();
 
     if (!id || !password) {

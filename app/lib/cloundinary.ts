@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 cloudinary.config({ 
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -7,13 +8,18 @@ cloudinary.config({
   secure: true,
 });
 
-// Function to upload base64 image to Cloudinary
-export async function uploadBase64ToCloudinary(base64Data: string, folder: string = 'car-listings'): Promise<string> {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export async function uploadBase64ToCloudinary(base64Data: string, folder: string): Promise<string> {
   try {
-    // Remove data:image/jpeg;base64, prefix if present
+    // Remove data URL prefix if present
     const base64Image = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
     
-    const result = await new Promise((resolve, reject) => {
+    const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload(
         `data:image/jpeg;base64,${base64Image}`,
         {
@@ -21,44 +27,35 @@ export async function uploadBase64ToCloudinary(base64Data: string, folder: strin
           resource_type: 'image',
         },
         (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+          if (error) return reject(error);
+          resolve(result);
         }
       );
     });
 
-    return (result as any).secure_url;
+    return result.secure_url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     throw new Error('Failed to upload image to Cloudinary');
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     // Get the file from the request
-    const formData = await new Promise((resolve, reject) => {
-      const chunks:any = [];
-      req.on('data', (chunk) => chunks.push(chunk));
+    const formData = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      req.on('data', (chunk: Buffer) => chunks.push(chunk));
       req.on('end', () => resolve(Buffer.concat(chunks)));
       req.on('error', reject);
     });
 
     // Upload to Cloudinary
-    const result = await new Promise((resolve, reject) => {
+    const result = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'car-listings' },
         (error, result) => {
@@ -78,7 +75,7 @@ export default async function handler(req, res) {
     console.error('Upload error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message || 'Failed to upload image' 
+      error: (error as Error).message || 'Failed to upload image' 
     });
   }
 }

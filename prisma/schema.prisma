@@ -63,7 +63,10 @@ model User {
   phone                 String?
   address               String?
   profilePhotoUrl       String?
+  governmentIdFrontUrl  String?
+  governmentIdBackUrl   String?
   isVerified            Boolean  @default(false)
+  isActive              Boolean  @default(true)
   verificationStatus    VerificationStatus @default(pending)
   verificationComments  String?
   verifiedAt            DateTime?

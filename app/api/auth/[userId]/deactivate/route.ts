@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 
 export async function PATCH(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { userId: string } }
   ) {
-    const { id } = await params;
+    const { userId } = params;
   
     try {
       // Check if user exists
       const user = await prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
       });
   
       if (!user) {
@@ -22,7 +22,7 @@ export async function PATCH(
   
 
       const updatedUser = await prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: { isActive: false },
       });
   

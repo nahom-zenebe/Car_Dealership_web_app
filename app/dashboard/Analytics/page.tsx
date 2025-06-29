@@ -49,105 +49,7 @@ interface UserAnalyticsProps {
   userId: string;
 }
 
-function AnalyticsTrendsAndModels() {
-  const [salesData, setSalesData] = useState<CarPurchaseData[]>([]);
-  const [topModels, setTopModels] = useState<TopModelData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      setIsLoading(true);
-      const res = await fetch('/api/sales/analytics?range=monthly');
-      const data = await res.json();
-      setSalesData(data.salesData || []);
-      setTopModels(data.topModels || []);
-      setIsLoading(false);
-    };
-    fetchAnalytics();
-  }, []);
-
-  // Calculate trend
-  const lastMonth = salesData[salesData.length - 2];
-  const thisMonth = salesData[salesData.length - 1];
-  const trendUp = thisMonth && lastMonth && thisMonth!.count > lastMonth!.count;
-  const trendDown = thisMonth && lastMonth && thisMonth.count < lastMonth.count;
-  const trendText = trendUp
-    ? 'Upward trend in purchases this month!'
-    : trendDown
-    ? 'Purchases are down compared to last month.'
-    : 'Stable purchase trend.';
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-      {/* Trends Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow p-6 flex flex-col justify-between">
-        <div>
-          <h3 className="text-xl font-bold text-blue-700 mb-2 flex items-center">
-            <svg className="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Trends
-          </h3>
-          <p className="text-gray-700 text-lg font-medium mb-4">
-            {isLoading ? 'Loading trend...' : trendText}
-          </p>
-          <div className="flex items-end space-x-2 h-32">
-            {salesData.slice(-6).map((item, idx) => (
-              <div key={item.month} className="flex flex-col items-center">
-                <div
-                  className={`transition-all duration-500 rounded-t bg-blue-500`}
-                  style={{
-                    height: `${(item.count || 1) * 10}px`,
-                    width: '18px',
-                    opacity: 0.8 + idx * 0.03,
-                  }}
-                ></div>
-                <span className="text-xs mt-1 text-blue-700">{item.month}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Top Models Section */}
-      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow p-6 flex flex-col justify-between">
-        <div>
-          <h3 className="text-xl font-bold text-purple-700 mb-2 flex items-center">
-            <svg className="w-6 h-6 mr-2 text-purple-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M12 17l-5 3 1.9-5.6L4 9.5l5.7-.5L12 4l2.3 5 5.7.5-4.9 4.9L17 20z" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Top Models
-          </h3>
-          <p className="text-gray-700 text-lg font-medium mb-4">
-            {isLoading
-              ? 'Loading top models...'
-              : topModels.length
-              ? `Most popular: ${topModels[0].model} (${topModels[0].count} purchases)`
-              : 'No model data.'}
-          </p>
-          <ul className="space-y-2">
-            {topModels.map((item, idx) => (
-              <li
-                key={item.model}
-                className={`flex items-center px-3 py-2 rounded-lg ${
-                  idx === 0
-                    ? 'bg-purple-200 font-bold text-purple-900'
-                    : 'bg-purple-50 text-purple-700'
-                }`}
-              >
-                <span className="mr-2 text-lg">{idx + 1}.</span>
-                <span className="flex-1">{item.model}</span>
-                <span className="ml-2 text-sm">{item.count} sold</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function AnalyticsPage() {
+export default function UserAnalytics({ userId }: UserAnalyticsProps) {
   const barChartRef = useRef<HTMLCanvasElement>(null);
   const lineChartRef = useRef<HTMLCanvasElement>(null);
   const pieChartRef = useRef<HTMLCanvasElement>(null);
@@ -179,7 +81,7 @@ export default function AnalyticsPage() {
     };
 
     fetchAnalyticsData();
-  }, [timeRange]);
+  }, [timeRange, userId]);
 
   useEffect(() => {
     if (!purchaseData.length || !topModels.length) return;
@@ -317,8 +219,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* New Trends & Top Models Section */}
-      <AnalyticsTrendsAndModels />
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Dealership Analytics</h2>
         <select 
